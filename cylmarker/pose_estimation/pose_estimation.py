@@ -9,5 +9,4 @@ def estimate_poses(cam_calib_data, config_file_data):
     for im_path in img_paths:
         im = cv.imread(im_path, cv.IMREAD_COLOR)
         # Segment the marker
-        im_marker = img_segmentation.marker_segmentation(im)
-        break
+        im_marker = img_segmentation.marker_segmentation(im, config_file_data)
