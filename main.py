@@ -1,7 +1,7 @@
 import argparse
 
-from cylmarker.pose_estimation import load_data
-
+from cylmarker import load_data
+from cylmarker.pose_estimation import pose_estimation
 
 TASK_CHOICES = {'c': 'camera_calibration', 'p': 'pose_estimation'}
 
@@ -19,9 +19,8 @@ def main():
     if task == 'pose_estimation':
         # Load data
         cam_calib_data, config_file_data = load_data.load_yaml(args.path)
-        # Load image paths
-        img_paths = load_data.load_img_paths(config_file_data)
-        print(img_paths)
+        # Estimate pose for each image
+        pose_estimation.estimate_poses(cam_calib_data, config_file_data)
 
 if __name__ == "__main__":
     main()
