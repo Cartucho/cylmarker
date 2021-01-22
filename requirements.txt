@@ -1,1 +1,2 @@
 PyYAML==5.4.1
+natsort==7.1.0
