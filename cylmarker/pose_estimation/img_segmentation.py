@@ -89,6 +89,8 @@ def get_marker_foreground(im_hsv, config_file_data):
     #cv.imshow('test_fg', mask_fg_colour) # TODO: remove
     #cv.waitKey(0)
 
+    return mask_fg_colour
+
 
 def marker_segmentation(im, config_file_data):
     #print(config_file_data)
@@ -100,4 +102,6 @@ def marker_segmentation(im, config_file_data):
     #marker_bg = cv.bitwise_and(im, im, mask=mask_marker_bg)
     marker_bg_hsv = cv.bitwise_and(im_hsv, im_hsv, mask=mask_marker_bg)
     mask_marker_fg = get_marker_foreground(marker_bg_hsv, config_file_data)
+
+    return mask_marker_bg, mask_marker_fg
 
