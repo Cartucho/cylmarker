@@ -3,7 +3,7 @@ import argparse
 from cylmarker import load_data
 from cylmarker.pose_estimation import pose_estimation
 
-TASK_CHOICES = {'c': 'camera_calibration', 'p': 'pose_estimation'}
+TASK_CHOICES = {'c': 'camera_calibration', 'p': 'pose_estimation', 'm': 'make_new_pattern_and_marker'}
 
 
 def get_args():
@@ -21,6 +21,10 @@ def main():
         cam_calib_data, config_file_data = load_data.load_yaml(args.path)
         # Estimate pose for each image
         pose_estimation.estimate_poses(cam_calib_data, config_file_data)
+    elif task == 'camera_calibration':
+        pass
+    elif task == 'make_new_pattern_and_marker':
+        pass
 
 if __name__ == "__main__":
     main()

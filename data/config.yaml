@@ -1,0 +1,33 @@
+# Settings for pose estimation
+img_dir_path: 'data/images'
+img_format: '.png' # keep the dot ('.')!
+cyl_diameter_mm: 8.0
+min_detected_lines: 3
+green_bg: true
+
+# Settings for making a new pattern and marker
+## New pattern
+pttrn_start: 0 # if starts with `0` then it will end with `1`, and vice-versa
+max_n_iterations_to_optimise_pttrn: 10000
+## New marker
+draw_green_bg: true
+pixel_marker_img_width: 3000
+pixel_corner_size: 300
+### marker margins
+pixel_margin_vertical: 100
+pixel_margin_between_corners_vertical: 0
+pixel_margin_between_corners_horizontal: 0
+
+# Settings for marker segmentation
+## background
+marker_bg_hue: 60 # 60 = green color
+marker_bg_hue_margin: 30 # should be smaller than 90, since in OpenCV the range is from 0 to 180
+marker_bg_s_min: 100 # s between 0 and 255
+marker_bg_s_max: 255
+marker_bg_v_min: 30 # v between 0 and 255
+marker_bg_v_max: 255
+## foreground
+marker_fg_s_min: 0 # s between 0 and 255
+marker_fg_s_max: 230
+marker_fg_v_min: 0 # v between 0 and 255
+marker_fg_v_max: 120 # (it's the red of the hsv image)
