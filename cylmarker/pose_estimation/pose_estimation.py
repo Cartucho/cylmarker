@@ -13,4 +13,5 @@ def estimate_poses(cam_calib_data, config_file_data):
         # Segment the marker
         mask_marker_bg, mask_marker_fg = img_segmentation.marker_segmentation(im, config_file_data)
         # Find connected components
-        connected_components.find_connected_components(im, mask_marker_fg, config_file_data)
+        ## TODO: find min num of connected components
+        connected_components.find_connected_components(im, mask_marker_fg)
