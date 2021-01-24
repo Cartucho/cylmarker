@@ -10,3 +10,10 @@ def arr_equal_in_list(my_arr, list_arrays):
 
 #def get_list_of_random_possible_codes(, max_n_codes):
 #max_patterns = 2**N_BLOB_ROWS
+
+
+def get_new_pttrn(config_file_data):
+    print('creating new pattern')
+
+    new_pttrn = None
+    return new_pttrn

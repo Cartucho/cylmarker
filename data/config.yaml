@@ -8,6 +8,7 @@ green_bg: true
 # Settings for making a new pattern and marker
 ## New pattern
 pttrn_start: 0 # if starts with `0` then it will end with `1`, and vice-versa
+max_n_random_codes: 100
 max_n_iterations_to_optimise_pttrn: 10000
 ## New marker
 draw_green_bg: true
