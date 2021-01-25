@@ -1,6 +1,6 @@
 import argparse
 
-from cylmarker import load_data
+from cylmarker import load_data, save_data
 from cylmarker.pose_estimation import pose_estimation
 from cylmarker.make_new_pattern_and_marker import create_new_pattern, create_new_marker
 
@@ -25,8 +25,11 @@ def main():
     elif task == 'camera_calibration':
         pass
     elif task == 'make_new_pattern_and_marker':
+        save_data.check_and_warn_if_files_will_be_replaced(args.path)
+        # Make and save new pattern
         new_pttrn = create_new_pattern.get_new_pttrn(config_file_data)
-        #create_new_pattern.save_new_pttrn(args.path, new_pttrn)
+        save_data.save_new_pttrn(args.path, new_pttrn)
+        # TODO: Make and save new marker
 
 if __name__ == "__main__":
     main()
