@@ -1,8 +1,8 @@
-import argparse
-
 from cylmarker import load_data, save_data
 from cylmarker.pose_estimation import pose_estimation
 from cylmarker.make_new_pattern_and_marker import create_new_pattern, create_new_marker
+import argparse
+
 
 TASK_CHOICES = {'c': 'camera_calibration', 'p': 'pose_estimation', 'm': 'make_new_pattern_and_marker'}
 
@@ -30,8 +30,8 @@ def main():
         new_pttrn = create_new_pattern.get_new_pttrn(config_file_data)
         save_data.save_new_pttrn(args.path, new_pttrn) # TODO
         # Make and save new marker
-        new_marker = create_new_marker.draw_marker(config_file_data, new_pttrn)
-        #save_data.save_new_marker(new_marker) # TODO
+        new_marker = create_new_marker.draw_marker(args.path, config_file_data, new_pttrn)
+        save_data.save_new_marker(new_marker)
 
 if __name__ == "__main__":
     main()

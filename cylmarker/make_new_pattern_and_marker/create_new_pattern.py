@@ -1,6 +1,7 @@
+import random
+
 import itertools
 import numpy as np
-import random
 
 
 def get_list_of_possible_codes(pattern_size, max_n_random_codes):

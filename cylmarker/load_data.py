@@ -6,6 +6,9 @@ import yaml
 from natsort import natsorted
 
 
+FILE_NAME_PATTERN = 'pattern.yaml'
+FILE_NAME_MARKER = 'marker.svg'
+
 def is_path_dir(string):
     if os.path.isdir(string):
         return string
@@ -46,3 +49,11 @@ def load_img_paths(config_file_data):
         img_paths = os.path.join(img_dir_path, '*{}'.format(img_format))
         img_paths_sorted = natsorted(glob.glob(img_paths))
         return img_paths_sorted
+
+
+def get_path_marker(data_dir):
+    return os.path.join(data_dir, FILE_NAME_MARKER)
+
+
+def get_path_pattern(data_dir):
+    return os.path.join(data_dir, FILE_NAME_PATTERN)
