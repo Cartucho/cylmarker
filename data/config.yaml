@@ -14,13 +14,13 @@ new_pattern:
     max_n_random_codes: 100
     max_n_iterations_to_optimise_pttrn: 10000
 new_marker:
-    draw_green_bg: true
+    draw_green_bg: false # TODO: not being used currently
     use_hexagonal_distribution: true
-    pattern_pixel_margin:
-        vertical: 100
+    marker_margin_pixels:
+        vertical: 100 # add both on top and bottom
     corner_size_pixels: 300
-    corner_margin:
-        vertical: 0
+    corner_margin_pixels:
+        vertical: 75
         horizontal: 0
 
 # Settings for marker segmentation
