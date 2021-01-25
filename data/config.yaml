@@ -6,18 +6,22 @@ min_detected_lines: 3
 green_bg: true
 
 # Settings for making a new pattern and marker
-## New pattern
-pttrn_start: 0 # if starts with `0` then it will end with `1`, and vice-versa
-max_n_random_codes: 100
-max_n_iterations_to_optimise_pttrn: 10000
-## New marker
-draw_green_bg: true
-pixel_marker_img_width: 3000
-pixel_corner_size: 300
-### marker margins
-pixel_margin_vertical: 100
-pixel_margin_between_corners_vertical: 0
-pixel_margin_between_corners_horizontal: 0
+new_pattern:
+    pattern_size:
+        n_codes: 5 # number of codes per pattern (= number of columns)
+        code_length: 6 # number of corners per code (should be > 2)
+    code_val_start: 0 # if starts with `0` then it will end with `1`, and vice-versa
+    max_n_random_codes: 100
+    max_n_iterations_to_optimise_pttrn: 10000
+new_marker:
+    draw_green_bg: true
+    use_hexagonal_distribution: true
+    pattern_pixel_margin:
+        vertical: 100
+    corner_size_pixels: 300
+    corner_margin:
+        vertical: 0
+        horizontal: 0
 
 # Settings for marker segmentation
 ## background

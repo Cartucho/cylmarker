@@ -2,7 +2,7 @@ import argparse
 
 from cylmarker import load_data
 from cylmarker.pose_estimation import pose_estimation
-from cylmarker.make_new_pattern_and_marker import create_new_pattern
+from cylmarker.make_new_pattern_and_marker import create_new_pattern, create_new_marker
 
 TASK_CHOICES = {'c': 'camera_calibration', 'p': 'pose_estimation', 'm': 'make_new_pattern_and_marker'}
 
@@ -26,6 +26,7 @@ def main():
         pass
     elif task == 'make_new_pattern_and_marker':
         new_pttrn = create_new_pattern.get_new_pttrn(config_file_data)
+        #create_new_pattern.save_new_pttrn(args.path, new_pttrn)
 
 if __name__ == "__main__":
     main()
