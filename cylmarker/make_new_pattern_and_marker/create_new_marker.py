@@ -22,6 +22,8 @@ def draw_corner(new_marker, u, v, corner_size_half, val_bool, corner_color):
         points = [a, c, b, d, a]
     new_marker.add(new_marker.polygon(points=points,
         stroke='none',
+        #stroke=svgwrite.rgb(0, 0, 0, '%'),
+        #stroke_width=10.0,
         fill=corner_color)
     )
     return new_marker
