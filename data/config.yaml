@@ -21,7 +21,9 @@ new_marker:
     use_hexagonal_distribution: true
     marker_margin_pixels:
         vertical: 185 # add both on top and bottom
-    feature_size_pixels: 100
+    feature_size_pixels:
+        vertical: 100
+        horizontal: 100
     feature_margin_pixels:
         vertical: 150
         horizontal: 125
