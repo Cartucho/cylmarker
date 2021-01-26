@@ -5,6 +5,43 @@ import math
 import svgwrite
 
 
+def draw_dash_and_dot(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, feature_color):
+    """
+         |
+         .
+         |
+         .
+    """
+    a = [u - feature_size_u_half, v - feature_size_v_half]
+    b = [u + feature_size_u_half, v - feature_size_v_half]
+    c = [u - feature_size_u_half, v + feature_size_v_half]
+    d = [u + feature_size_u_half, v + feature_size_v_half]
+    if val_bool:
+        """ Ellipse """
+        """
+        new_marker.add(new_marker.ellipse(center=(u, v),
+            r=(feature_size_u_half, feature_size_v_half),
+            stroke='none',
+            fill=feature_color)
+        )
+        """
+        """ Rectangle """
+        points = [a, b, d, c, a]
+        new_marker.add(new_marker.polygon(points=points,
+            stroke='none',
+            #stroke=svgwrite.rgb(0, 0, 0, '%'),
+            #stroke_width=10.0,
+            fill=feature_color)
+        )
+    else:
+        new_marker.add(new_marker.circle(center=(u, v),
+            r=feature_size_u_half,
+            stroke='none',
+            fill=feature_color)
+        )
+    return new_marker
+
+
 def draw_corner(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, feature_color):
     """
         a  b
@@ -121,6 +158,7 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
                                  |x    x    x    |        |  x    x    x  |
                                  |x    x    x    |        |  x    x    x  |
                                  |x    x    x    |        |  x    x    x  |
+             margin_horizontal:  (0)          (4)          (2)          (2)
     """
     feature_margin_u_half = feature_margin_u / 2.0
     init_u = feature_size_u_half + feature_margin_u_half
@@ -137,7 +175,8 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
             shift_v = hexagonal_shift_v
         for j, val_bool in enumerate(sequence):
             v = init_v + shift_v +  j * delta_v
-            new_marker = draw_corner(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, black)
+            #new_marker = draw_corner(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, black)
+            new_marker = draw_dash_and_dot(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, black)
             tmp_u_v.append([u, v])
             x = v * mm_per_pixel
             alpha = math.radians((u/marker_width) * 360.0)

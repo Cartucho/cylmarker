@@ -11,8 +11,8 @@ printing_paper_thickness_mm: 0.08 # standard 100 gsm paper
 # Settings for making a new pattern and marker
 new_pattern:
     pattern_size:
-        n_sequences: 13 # number of sequences per pattern (= number of columns)
-        sequence_length: 13 # number of features per sequence (should be > 2)
+        n_sequences: 15 # number of sequences per pattern (= number of columns)
+        sequence_length: 7 # number of features per sequence (should be > 2)
     sequence_val_start: 0 # if starts with `0` then it will end with `1`, and vice-versa
     max_n_random_sequences: 100
     max_n_iterations_to_optimise_pttrn: 1000
@@ -20,13 +20,13 @@ new_marker:
     draw_green_bg: false # TODO: not being used currently
     use_hexagonal_distribution: true
     marker_margin_pixels:
-        vertical: 185 # add both on top and bottom
+        vertical: 198 # add both on top and bottom
     feature_size_pixels:
-        vertical: 100
+        vertical: 300
         horizontal: 100
     feature_margin_pixels:
         vertical: 150
-        horizontal: 125
+        horizontal: 100
     add_border_top_and_bot: true # to be used as a guide for cutting the printed marker
     border_thickness_pixels: 10
 
