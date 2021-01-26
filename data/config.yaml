@@ -15,7 +15,7 @@ new_pattern:
         code_length: 6 # number of corners per code (should be > 2)
     code_val_start: 0 # if starts with `0` then it will end with `1`, and vice-versa
     max_n_random_codes: 100
-    max_n_iterations_to_optimise_pttrn: 100 #0
+    max_n_iterations_to_optimise_pttrn: 11440
 new_marker:
     draw_green_bg: false # TODO: not being used currently
     use_hexagonal_distribution: true

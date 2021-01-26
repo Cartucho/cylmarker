@@ -2,6 +2,7 @@ import random
 
 import itertools
 import numpy as np
+from tqdm import tqdm
 
 
 def get_list_of_possible_codes(pattern_size, max_n_random_codes):
@@ -20,16 +21,28 @@ def get_list_of_possible_codes(pattern_size, max_n_random_codes):
         Although the use may think of the code as `0`s and `1`s,
         we will be using booleans instead of ints to consume less memory.
     """
+    print('\nFinding the possible codes...')
     n_possible_codes = 2 ** size_of_random_part_of_code
     if n_possible_codes < max_n_random_codes:
-        possible_codes = list(itertools.product([True, False], repeat=size_of_random_part_of_code))
+        possible_codes = []
+        for code in tqdm(itertools.product([True, False], repeat=size_of_random_part_of_code), total=n_possible_codes):
+            possible_codes.append(code)
     else:
-        counter = 0
-        while counter < max_n_random_codes:
+        for i in tqdm(range(max_n_random_codes)):
             it = np.random.choice([True, False], size=size_of_random_part_of_code)
             possible_codes.append(it)
-            counter += 1
     return possible_codes
+
+
+def get_tmp_pattern_and_strength(possible_codes, comb):
+    tmp_pattern = []
+    for ind in comb:
+        tmp_pattern.append(np.asarray(possible_codes[ind]))
+    strength = 0
+    for comb in itertools.combinations(range(len(tmp_pattern)), 2):
+        ind_1, ind_2 = comb
+        strength += sum([k != l for k, l in zip(tmp_pattern[ind_1], tmp_pattern[ind_2])])
+    return tmp_pattern, strength
 
 
 def get_best_pattern_from_possible_codes(pttrn_size, possible_codes, n_iter_max):
@@ -44,44 +57,29 @@ def get_best_pattern_from_possible_codes(pttrn_size, possible_codes, n_iter_max)
 
     # First, we need to decide if we go through all the possible combinations or not
     possible_codes_len = len(possible_codes)
-    compare_all_codes = False
-    #n_possible_combinations = sum(1 for ignore in itertools.combinations(range(len(possible_codes)), n_codes))
-    tmp_sum = 0
-    for ignore in itertools.combinations(range(possible_codes_len), n_codes):
-        tmp_sum += 1
-        if tmp_sum > possible_codes_len:
-            compare_all_codes = True
-            break
+    compare_all_codes = True
+
+    # The next line counts the number of possible combinations, while this counter is smaller than `n_iter_max + 1`
+    # ref: https://stackoverflow.com/questions/50652393/itertools-combinations-permutations-size
+    # ref: https://stackoverflow.com/questions/23722473/limiting-the-number-of-combinations-permutations-in-python/50057642
+    n_possible_combinations = sum(1 for ignore in itertools.islice(itertools.combinations(range(len(possible_codes)), n_codes), n_iter_max + 1))
+    if n_possible_combinations > n_iter_max:
+        compare_all_codes = False
 
     best_pattern = None
     best_pattern_strength = -1
     # TODO: repeated code in here, clean up needed
+    print('\nFinding the best pattern...')
     if compare_all_codes:
-        for comb in itertools.combinations(range(possible_codes_len), n_codes):
-            #print(comb)
-            tmp_pattern = []
-            for ind in comb:
-                tmp_pattern.append(np.asarray(possible_codes[ind]))
-            strength = 0
-            for comb in itertools.combinations(range(len(tmp_pattern)), 2):
-                ind_1, ind_2 = comb
-                strength += sum([k != l for k, l in zip(tmp_pattern[ind_1], tmp_pattern[ind_2])])
+        for comb in tqdm(itertools.combinations(range(possible_codes_len), n_codes), total=n_possible_combinations):
+            tmp_pattern, strength = get_tmp_pattern_and_strength(possible_codes, comb)
             if strength > best_pattern_strength:
                 best_pattern_strength = strength
                 best_pattern = tmp_pattern
     else:
-        for _i in range(n_iter_max):
-            ind_rndm_slctd_possible_codes = random.sample(range(len(possible_codes)), n_codes)
-            #print(ind_rndm_slctd_possible_codes)
-            tmp_pattern = []
-            for ind in ind_rndm_slctd_possible_codes:
-                tmp_pattern.append(np.asarray(possible_codes[ind]))
-            #print(tmp_pattern)
-            strength = 0
-            for comb in itertools.combinations(range(len(tmp_pattern)), 2):
-                ind_1, ind_2 = comb
-                print('{} {}'.format(ind_1, ind_2))
-                strength += sum([k != l for k, l in zip(tmp_pattern[ind_1], tmp_pattern[ind_2])])
+        for _i in tqdm(range(n_iter_max)):
+            comb = random.sample(range(len(possible_codes)), n_codes)
+            tmp_pattern, strength = get_tmp_pattern_and_strength(possible_codes, comb)
             if strength > best_pattern_strength:
                 best_pattern_strength = strength
                 best_pattern = tmp_pattern
