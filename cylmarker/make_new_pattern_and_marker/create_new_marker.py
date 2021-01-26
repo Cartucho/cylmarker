@@ -4,7 +4,7 @@ import os
 import svgwrite
 
 
-def draw_corner(new_marker, u, v, corner_size_half, val_bool):
+def draw_corner(new_marker, u, v, corner_size_half, val_bool, corner_color):
     """
         a  b
          \/
@@ -21,7 +21,7 @@ def draw_corner(new_marker, u, v, corner_size_half, val_bool):
         points = [a, c, b, d, a]
     new_marker.add(new_marker.polygon(points=points,
         stroke='none',
-        fill=svgwrite.rgb(0, 0, 0, '%'))
+        fill=corner_color)
     )
     return new_marker
 
@@ -46,6 +46,11 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
     corner_size = marker_data['corner_size_pixels']
     corner_size_half = corner_size / 2.0
     corner_margin = marker_data['corner_margin_pixels']
+
+    # Define colors
+    black = svgwrite.rgb(0, 0, 0, '%')
+    white = svgwrite.rgb(100, 100, 100, '%')
+    green = svgwrite.rgb(0, 100, 0, '%')
 
     # Calculate marker width
     corner_margin_u = corner_margin['horizontal']
@@ -89,14 +94,20 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
     # Make marker
     new_marker = svgwrite.Drawing(file_marker, profile='tiny')
     # Paint background
-    fill_color = svgwrite.rgb(100, 100, 100, '%')
+    fill_color = white
     if marker_data['draw_green_bg']:
-        fill_color = svgwrite.rgb(0, 100, 0, '%')
+        fill_color = green
     new_marker.add(new_marker.rect((0, 0), (marker_width, marker_height), stroke='none', fill=fill_color))
 
-    # Paint corners
-    corner_color = svgwrite.rgb(0, 0, 0, '%')
+    # Add borders, to the top and bottom
+    if marker_data['add_border_top_and_bot']:
+        thck = marker_data['border_thickness_pixels']
+        top = thck/2.0
+        bot = marker_height - thck/2.0
+        new_marker.add(new_marker.line((0, top), (marker_width, top), stroke_width=thck, stroke=black))
+        new_marker.add(new_marker.line((0, bot), (marker_width, bot), stroke_width=thck, stroke=black))
 
+    # Paint corners
     """
       To centre the pattern in the u direction I will add `corner_margin_u_half` to the first code.
       This way instead of getting this (see below), we get this (see below):
@@ -118,7 +129,7 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
             shift_v = hexagonal_shift_v
         for j, val_bool in enumerate(code):
             v = init_v + shift_v +  j * delta_v
-            new_marker = draw_corner(new_marker, u, v, corner_size_half, val_bool)
+            new_marker = draw_corner(new_marker, u, v, corner_size_half, val_bool, black)
 
     # Draw marker corners according to the `new_pttrn`
     return new_marker

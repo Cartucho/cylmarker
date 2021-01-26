@@ -1,9 +1,12 @@
 # Settings for pose estimation
 img_dir_path: 'data/images'
 img_format: '.png' # keep the dot ('.')!
-cyl_diameter_mm: 8.0
 min_detected_lines: 3
 green_bg: true
+cyl_diameter_mm: 8.0
+# if you print the marker, to wrap around a cylinder, we also need to take into account the paper's thickness
+printing_paper_thickness_mm: 0.08 # standard 100 gsm paper
+
 
 # Settings for making a new pattern and marker
 new_pattern:
@@ -22,6 +25,8 @@ new_marker:
     corner_margin_pixels:
         vertical: 100
         horizontal: 100
+    add_border_top_and_bot: true # to be used as a guide for cutting the printed marker
+    border_thickness_pixels: 10
 
 # Settings for marker segmentation
 ## background
