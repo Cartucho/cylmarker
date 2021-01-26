@@ -29,7 +29,7 @@ def draw_corner(new_marker, u, v, corner_size_half, val_bool, corner_color):
 
 def draw_marker(data_dir, config_file_data, new_pttrn):
     """ marker
-            code_0   code_1 ...
+         sequence_0  sequence_1 ...
         .---------------------> (u)
         |     x        x
         |     x        x    ...
@@ -38,10 +38,10 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
        (v)
     """
     marker_data = config_file_data['new_marker']
-    # There will be one corner per every value `x` of a code.
+    # There will be one corner per every value `x` of a sequence.
     pttrn_size = config_file_data['new_pattern']['pattern_size']
-    n_codes = pttrn_size['n_codes']
-    n_corners = pttrn_size['code_length']
+    n_sequences = pttrn_size['n_sequences']
+    n_corners = pttrn_size['sequence_length']
     # Get corner size and its margins
     corner_size = marker_data['corner_size_pixels']
     corner_size_half = corner_size / 2.0
@@ -54,7 +54,7 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
 
     # Calculate marker width
     corner_margin_u = corner_margin['horizontal']
-    marker_width = n_codes * (corner_size + corner_margin_u)
+    marker_width = n_sequences * (corner_size + corner_margin_u)
 
     # Calculate marker height
     corner_margin_v = corner_margin['vertical']
@@ -111,7 +111,7 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
 
     # Paint corners
     """
-      To centre the pattern in the u direction I will add `corner_margin_u_half` to the first code.
+      To centre the pattern in the u direction I will add `corner_margin_u_half` to the first sequence.
       This way instead of getting this (see below), we get this (see below):
                                  |x    x    x    |        |  x    x    x  |
                                  |x    x    x    |        |  x    x    x  |
@@ -122,7 +122,7 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
     delta_u = corner_size + corner_margin_u
     init_v = marker_margin_v + corner_size_half
     delta_v = corner_size + corner_margin_v
-    for i, code in enumerate(new_pttrn):
+    for i, sequence in enumerate(new_pttrn):
         tmp_u_v = []
         tmp_x_y_z = []
         u = init_u + i * delta_u
@@ -130,7 +130,7 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
         # in the hexagonal we want to align with the centre of the gap between corners
         if use_hex_dist and i % 2 == 1:
             shift_v = hexagonal_shift_v
-        for j, val_bool in enumerate(code):
+        for j, val_bool in enumerate(sequence):
             v = init_v + shift_v +  j * delta_v
             new_marker = draw_corner(new_marker, u, v, corner_size_half, val_bool, black)
             tmp_u_v.append([u, v])

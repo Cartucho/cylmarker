@@ -39,13 +39,13 @@ def save_new_pttrn(data_dir, new_pttrn):
     file_pattern = load_data.get_path_pattern(data_dir)
     delete_file_if_exists(file_pattern)
     data_pattrn = {}
-    for count, code in enumerate(new_pttrn):
-        code_name = 'code_{}'.format(count)
-        data_pattrn[code_name] = code.tolist()
+    for count, sequence in enumerate(new_pttrn):
+        sequence_name = 'sequence_{}'.format(count)
+        data_pattrn[sequence_name] = sequence.tolist()
     # Save pattern data
     with open(file_pattern, 'w') as f:
         #data = yaml.dump(data_pattrn, f, default_flow_style=None) # horizontal alignment instead of vertical
-        yaml.dump(data_pattrn, f) # vertical is more intuitive, since the codes are columns in the marker
+        yaml.dump(data_pattrn, f) # vertical is more intuitive, since the sequences are columns in the marker
 
 
 def save_new_marker(data_dir, new_marker, u_v, x_y_z):
@@ -59,8 +59,8 @@ def save_new_marker(data_dir, new_marker, u_v, x_y_z):
         corner_data = {}
         corner_data['uv'] = u_v
         corner_data['XYZ'] = x_y_z
-        code_name = 'code_{}'.format(count)
-        data_marker[code_name] = corner_data
+        sequence_name = 'sequence_{}'.format(count)
+        data_marker[sequence_name] = corner_data
     # Save in yaml file
     with open(file_marker_data, 'w') as f:
         yaml.dump(data_marker, f, default_flow_style=None)
