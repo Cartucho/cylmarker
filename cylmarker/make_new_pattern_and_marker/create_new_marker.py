@@ -5,17 +5,17 @@ import math
 import svgwrite
 
 
-def draw_corner(new_marker, u, v, corner_size_half, val_bool, corner_color):
+def draw_corner(new_marker, u, v, feature_size_half, val_bool, feature_color):
     """
         a  b
          \/
          /\
         c  d
     """
-    a = [u - corner_size_half, v - corner_size_half]
-    b = [u + corner_size_half, v - corner_size_half]
-    c = [u - corner_size_half, v + corner_size_half]
-    d = [u + corner_size_half, v + corner_size_half]
+    a = [u - feature_size_half, v - feature_size_half]
+    b = [u + feature_size_half, v - feature_size_half]
+    c = [u - feature_size_half, v + feature_size_half]
+    d = [u + feature_size_half, v + feature_size_half]
     if val_bool:
         points = [a, b, c, d, a]
     else:
@@ -24,7 +24,7 @@ def draw_corner(new_marker, u, v, corner_size_half, val_bool, corner_color):
         stroke='none',
         #stroke=svgwrite.rgb(0, 0, 0, '%'),
         #stroke_width=10.0,
-        fill=corner_color)
+        fill=feature_color)
     )
     return new_marker
 
@@ -40,14 +40,14 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
        (v)
     """
     marker_data = config_file_data['new_marker']
-    # There will be one corner per every value `x` of a sequence.
+    # There will be one feature per every value `x` of a sequence.
     pttrn_size = config_file_data['new_pattern']['pattern_size']
     n_sequences = pttrn_size['n_sequences']
-    n_corners = pttrn_size['sequence_length']
-    # Get corner size and its margins
-    corner_size = marker_data['corner_size_pixels']
-    corner_size_half = corner_size / 2.0
-    corner_margin = marker_data['corner_margin_pixels']
+    n_features = pttrn_size['sequence_length']
+    # Get feature size and its margins
+    feature_size = marker_data['feature_size_pixels']
+    feature_size_half = feature_size / 2.0
+    feature_margin = marker_data['feature_margin_pixels']
 
     # Define colors
     black = svgwrite.rgb(0, 0, 0, '%')
@@ -55,25 +55,25 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
     green = svgwrite.rgb(0, 100, 0, '%')
 
     # Calculate marker width
-    corner_margin_u = corner_margin['horizontal']
-    marker_width = n_sequences * (corner_size + corner_margin_u)
+    feature_margin_u = feature_margin['horizontal']
+    marker_width = n_sequences * (feature_size + feature_margin_u)
 
     # Calculate marker height
-    corner_margin_v = corner_margin['vertical']
+    feature_margin_v = feature_margin['vertical']
     marker_margin_v = marker_data['marker_margin_pixels']['vertical']
     """
         ------
         |       ]margin_v
-        |   x   ]corner_size
-        |       ]corner_margin_v
-        |   x   ]corner_size
-        |       ]corner_margin_v
-        |   x   ]corner_size
+        |   x   ]feature_size
+        |       ]feature_margin_v
+        |   x   ]feature_size
+        |       ]feature_margin_v
+        |   x   ]feature_size
         |       ]margin_v
         ------
     """
     marker_margin_v_total = 2 * marker_margin_v # since we add the margin on top and bottom
-    marker_height = marker_margin_v_total + n_corners * corner_size + (n_corners - 1) * corner_margin_v
+    marker_height = marker_margin_v_total + n_features * feature_size + (n_features - 1) * feature_margin_v
     use_hex_dist = marker_data['use_hexagonal_distribution']
     if use_hex_dist:
         """   non hex.    vs.    hex
@@ -82,10 +82,10 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
           | x  x  x  x  x | x     x    x |
           |               |    x     x   |
 
-            on the hexagonal grid there is a shift = corner_size_half + corner_margin_v / 2,
+            on the hexagonal grid there is a shift = feature_size_half + feature_margin_v / 2,
             on the even columns, so that they intercalate.
         """
-        hexagonal_shift_v = corner_size_half + corner_margin_v / 2.
+        hexagonal_shift_v = feature_size_half + feature_margin_v / 2.
         marker_height += hexagonal_shift_v
 
     # Get path of where to save the marker
@@ -111,30 +111,30 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
     # Get cylinder's radius and mm per pixel
     radius, mm_per_pixel = load_data.get_marker_radius_and_mmperpixel(config_file_data, marker_width)
 
-    # Paint corners
+    # Paint features
     """
-      To centre the pattern in the u direction I will add `corner_margin_u_half` to the first sequence.
+      To centre the pattern in the u direction I will add `feature_margin_u_half` to the first sequence.
       This way instead of getting this (see below), we get this (see below):
                                  |x    x    x    |        |  x    x    x  |
                                  |x    x    x    |        |  x    x    x  |
                                  |x    x    x    |        |  x    x    x  |
     """
-    corner_margin_u_half = corner_margin_u / 2.0
-    init_u = corner_size_half + corner_margin_u_half
-    delta_u = corner_size + corner_margin_u
-    init_v = marker_margin_v + corner_size_half
-    delta_v = corner_size + corner_margin_v
+    feature_margin_u_half = feature_margin_u / 2.0
+    init_u = feature_size_half + feature_margin_u_half
+    delta_u = feature_size + feature_margin_u
+    init_v = marker_margin_v + feature_size_half
+    delta_v = feature_size + feature_margin_v
     for i, sequence in enumerate(new_pttrn):
         tmp_u_v = []
         tmp_x_y_z = []
         u = init_u + i * delta_u
         shift_v = 0
-        # in the hexagonal we want to align with the centre of the gap between corners
+        # in the hexagonal we want to align with the centre of the gap between features
         if use_hex_dist and i % 2 == 1:
             shift_v = hexagonal_shift_v
         for j, val_bool in enumerate(sequence):
             v = init_v + shift_v +  j * delta_v
-            new_marker = draw_corner(new_marker, u, v, corner_size_half, val_bool, black)
+            new_marker = draw_corner(new_marker, u, v, feature_size_half, val_bool, black)
             tmp_u_v.append([u, v])
             x = v * mm_per_pixel
             alpha = math.radians((u/marker_width) * 360.0)
@@ -144,7 +144,7 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
         u_v.append(tmp_u_v)
         x_y_z.append(tmp_x_y_z)
 
-    # Draw marker corners according to the `new_pttrn`
+    # Draw marker features according to the `new_pttrn`
     return new_marker, u_v, x_y_z
 
 

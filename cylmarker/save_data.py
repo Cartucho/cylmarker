@@ -56,11 +56,11 @@ def save_new_marker(data_dir, new_marker, u_v, x_y_z):
     delete_file_if_exists(file_marker_data)
     data_marker = {}
     for count, (u_v, x_y_z) in enumerate(zip(u_v, x_y_z)):
-        corner_data = {}
-        corner_data['uv'] = u_v
-        corner_data['XYZ'] = x_y_z
+        feature_data = {}
+        feature_data['uv'] = u_v
+        feature_data['XYZ'] = x_y_z
         sequence_name = 'sequence_{}'.format(count)
-        data_marker[sequence_name] = corner_data
+        data_marker[sequence_name] = feature_data
     # Save in yaml file
     with open(file_marker_data, 'w') as f:
         yaml.dump(data_marker, f, default_flow_style=None)
