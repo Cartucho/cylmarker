@@ -7,7 +7,9 @@ from natsort import natsorted
 
 
 FILE_NAME_PATTERN = 'pattern.yaml'
-FILE_NAME_MARKER = 'marker.svg'
+FILE_NAME_MARKER_IMG = 'marker.svg'
+FILE_NAME_MARKER_DATA = 'marker.yaml'
+
 
 def is_path_dir(string):
     if os.path.isdir(string):
@@ -51,9 +53,33 @@ def load_img_paths(config_file_data):
         return img_paths_sorted
 
 
-def get_path_marker(data_dir):
-    return os.path.join(data_dir, FILE_NAME_MARKER)
+def get_path_marker_img(data_dir):
+    return os.path.join(data_dir, FILE_NAME_MARKER_IMG)
+
+
+def get_path_marker_data(data_dir):
+    return os.path.join(data_dir, FILE_NAME_MARKER_DATA)
 
 
 def get_path_pattern(data_dir):
     return os.path.join(data_dir, FILE_NAME_PATTERN)
+
+
+def get_marker_diameter(config_file_data):
+    cyl_diam = config_file_data['cyl_diameter_mm']
+    paper_thickness = config_file_data['printing_paper_thickness_mm']
+    return cyl_diam + 2.0 * paper_thickness
+
+
+def get_marker_mm_per_pixel(marker_diameter, marker_width):
+    return marker_diameter/marker_width
+
+
+def get_marker_radius_and_mmperpixel(config_file_data, marker_width):
+    diam = get_marker_diameter(config_file_data)
+    radius = diam/2.
+    mm_per_pixel = get_marker_mm_per_pixel(diam, marker_width)
+    return radius, mm_per_pixel
+
+
+

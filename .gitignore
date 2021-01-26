@@ -1,6 +1,7 @@
 data/images/
 data/marker.svg
 data/pattern.yaml
+data/marker.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

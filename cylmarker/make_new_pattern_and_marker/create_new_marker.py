@@ -1,5 +1,6 @@
 from cylmarker import load_data
 import os
+import math
 
 import svgwrite
 
@@ -37,7 +38,6 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
        (v)
     """
     marker_data = config_file_data['new_marker']
-    print(marker_data)
     # There will be one corner per every value `x` of a code.
     pttrn_size = config_file_data['new_pattern']['pattern_size']
     n_codes = pttrn_size['n_codes']
@@ -55,7 +55,6 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
     # Calculate marker width
     corner_margin_u = corner_margin['horizontal']
     marker_width = n_codes * (corner_size + corner_margin_u)
-    print(marker_width)
 
     # Calculate marker height
     corner_margin_v = corner_margin['vertical']
@@ -86,11 +85,9 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
         """
         hexagonal_shift_v = corner_size_half + corner_margin_v / 2.
         marker_height += hexagonal_shift_v
-    #marker_height = marker_margin_v_total + n_corners * corner_size + (n_corners - 1) * corner_margin_v + corner_margin_v / 2.0
-    print(marker_height)
 
     # Get path of where to save the marker
-    file_marker = load_data.get_path_marker(data_dir)
+    file_marker = load_data.get_path_marker_img(data_dir)
     # Make marker
     new_marker = svgwrite.Drawing(file_marker, profile='tiny')
     # Paint background
@@ -107,6 +104,11 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
         new_marker.add(new_marker.line((0, top), (marker_width, top), stroke_width=thck, stroke=black))
         new_marker.add(new_marker.line((0, bot), (marker_width, bot), stroke_width=thck, stroke=black))
 
+    u_v = []
+    x_y_z = []
+    # Get cylinder's radius and mm per pixel
+    radius, mm_per_pixel = load_data.get_marker_radius_and_mmperpixel(config_file_data, marker_width)
+
     # Paint corners
     """
       To centre the pattern in the u direction I will add `corner_margin_u_half` to the first code.
@@ -121,7 +123,8 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
     init_v = marker_margin_v + corner_size_half
     delta_v = corner_size + corner_margin_v
     for i, code in enumerate(new_pttrn):
-        print(code)
+        tmp_u_v = []
+        tmp_x_y_z = []
         u = init_u + i * delta_u
         shift_v = 0
         # in the hexagonal we want to align with the centre of the gap between corners
@@ -130,9 +133,17 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
         for j, val_bool in enumerate(code):
             v = init_v + shift_v +  j * delta_v
             new_marker = draw_corner(new_marker, u, v, corner_size_half, val_bool, black)
+            tmp_u_v.append([u, v])
+            x = v * mm_per_pixel
+            alpha = math.radians((u/marker_width) * 360.0)
+            y = radius * math.sin(alpha)
+            z = radius * math.cos(alpha)
+            tmp_x_y_z.append([x, y, z])
+        u_v.append(tmp_u_v)
+        x_y_z.append(tmp_x_y_z)
 
     # Draw marker corners according to the `new_pttrn`
-    return new_marker
+    return new_marker, u_v, x_y_z
 
 
 

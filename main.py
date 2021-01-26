@@ -28,10 +28,10 @@ def main():
         save_data.check_and_warn_if_files_will_be_replaced(args.path)
         # Make and save new pattern
         new_pttrn = create_new_pattern.get_new_pttrn(config_file_data)
-        save_data.save_new_pttrn(args.path, new_pttrn) # TODO
+        save_data.save_new_pttrn(args.path, new_pttrn)
         # Make and save new marker
-        new_marker = create_new_marker.draw_marker(args.path, config_file_data, new_pttrn)
-        save_data.save_new_marker(new_marker)
+        marker_img, u_v, x_y_z = create_new_marker.draw_marker(args.path, config_file_data, new_pttrn)
+        save_data.save_new_marker(args.path, marker_img, u_v, x_y_z)
 
 if __name__ == "__main__":
     main()

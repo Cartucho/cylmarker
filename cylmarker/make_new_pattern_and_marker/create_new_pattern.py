@@ -68,7 +68,6 @@ def get_best_pattern_from_possible_codes(pttrn_size, possible_codes, n_iter_max)
 
     best_pattern = None
     best_pattern_strength = -1
-    # TODO: repeated code in here, clean up needed
     print('\nFinding the best pattern...')
     if compare_all_codes:
         for comb in tqdm(itertools.combinations(range(possible_codes_len), n_codes), total=n_possible_combinations):
