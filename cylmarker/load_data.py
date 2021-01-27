@@ -6,6 +6,8 @@ import yaml
 from natsort import natsorted
 
 
+FILE_NAME_CONFIG = 'config.yaml'
+FILE_NAME_CAM_CALIB = 'camera_calibration.yaml'
 FILE_NAME_PATTERN = 'pattern.yaml'
 FILE_NAME_MARKER_IMG = 'marker.svg'
 FILE_NAME_MARKER_DATA = 'marker.yaml'
@@ -25,23 +27,40 @@ def is_path_file(string):
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), string)
 
 
-
-def load_cam_calib_data(path):
+def load_yaml_data(path):
     if is_path_file(path):
         with open(path) as f_tmp:
             return yaml.load(f_tmp, Loader=yaml.FullLoader)
 
 
+def get_path_config(data_dir):
+    return os.path.join(data_dir, FILE_NAME_CONFIG)
+
+
+def get_path_cam_calib(data_dir):
+    return os.path.join(data_dir, FILE_NAME_CAM_CALIB)
+
+
 def load_config_and_cam_calib_data(data_dir):
     # Load config file data
-    config_file = os.path.join(data_dir, 'config.yaml')
-    config_file_data = load_cam_calib_data(config_file)
+    config_file = get_path_config(data_dir)
+    config_file_data = load_yaml_data(config_file)
 
     # Load camera intrinsic matrix and distortion coefficients
-    cam_calib_file = os.path.join(data_dir, 'camera_calibration.yaml')
-    cam_calib_data = load_cam_calib_data(cam_calib_file)
+    cam_calib_file = get_path_cam_calib(data_dir)
+    cam_calib_data = load_yaml_data(cam_calib_file)
 
     return config_file_data, cam_calib_data
+
+
+def load_pttrn_and_marker_data(data_dir):
+    # Load pattern data
+    pttrn_file = get_path_pattern(data_dir)
+    pttrn_file_data = load_yaml_data(pttrn_file)
+    # Load marker data
+    marker_file = get_path_marker_data(data_dir)
+    marker_file_data = load_yaml_data(marker_file)
+    return pttrn_file_data, marker_file_data
 
 
 def load_img_paths(config_file_data):

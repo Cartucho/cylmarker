@@ -20,6 +20,7 @@ def main():
     # Load data
     data_config, data_cam_calib = load_data.load_config_and_cam_calib_data(args.path)
     if task == 'pose_estimation':
+        data_pttrn, data_marker = load_data.load_pttrn_and_marker_data(args.path)
         # Estimate pose for each image
         pose_estimation.estimate_poses(data_cam_calib, data_config)
     elif task == 'camera_calibration':
