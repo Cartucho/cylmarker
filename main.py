@@ -22,7 +22,7 @@ def main():
     if task == 'pose_estimation':
         data_pttrn, data_marker = load_data.load_pttrn_and_marker_data(args.path)
         # Estimate pose for each image
-        pose_estimation.estimate_poses(data_cam_calib, data_config)
+        pose_estimation.estimate_poses(data_cam_calib, data_config, data_pttrn, data_marker)
     elif task == 'camera_calibration':
         pass
     elif task == 'make_new_pattern_and_marker':

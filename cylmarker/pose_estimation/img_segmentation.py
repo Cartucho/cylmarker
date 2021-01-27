@@ -21,10 +21,10 @@ def get_hsv_lower_and_upper(h, h_margin, s_min, s_max, v_min, v_max):
     upper = [[h_max, s_max, v_max]]
     # Deal with the discontinuity of the `h` channel
     #  important for example when detecting the red color.
-    if h_min <= 0:
+    if h_min < 0:
         lower = [[0, s_min, v_min], [180 + h_min, s_min, v_min]]
         upper = [[h_max, s_max, v_max], [180, s_max, v_max]]
-    elif h_max >= 180:
+    elif h_max > 180:
         lower = [[0, s_min, v_min], [h_min, s_min, v_min]]
         upper = [[0 + (h_max - 180), s_max, v_max], [180, s_max, v_max]]
     return np.array(lower, np.uint8), np.array(upper, np.uint8)
@@ -37,7 +37,7 @@ def get_hsv_mask(im_hsv, lower, upper):
         if mask_colour is None:
             mask_colour = mask_colour_tmp
         else:
-            mask_colour = cv.bitwise_or(marker_blobs_red, mask_colour_tmp)
+            mask_colour = cv.bitwise_or(mask_colour, mask_colour_tmp)
     return mask_colour
 
 
@@ -54,29 +54,26 @@ def get_marker_background(im_hsv, config_file_data):
     lower, upper = get_hsv_lower_and_upper(h, h_margin, s_min, s_max, v_min, v_max)
     mask_bg_colour = get_hsv_mask(im_hsv, lower, upper)
 
-    # Erode mask
-    # TODO: these values are hardcoded, maybe I should put them in the config file
-    kernel = np.ones((5, 5), np.uint8)
-    mask_bg_colour_eroded = cv.erode(mask_bg_colour, kernel, iterations = 2)
-
+    # Erode mask (remove noise, not sure if needed)
+    #kernel = np.ones((3, 3), np.uint8)
+    #mask_bg_colour = cv.erode(mask_bg_colour, kernel, iterations = 1)
 
     ## Get largest contour (to avoid returning noise as a potential marker)
-    contours, _hierarchy = cv.findContours(mask_bg_colour_eroded, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+    contours, _hierarchy = cv.findContours(mask_bg_colour, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
     c = max(contours, key = cv.contourArea)
     mask_marker_bg = np.zeros(mask_bg_colour.shape, np.uint8)
     cv.drawContours(mask_marker_bg, [c], -1, 255, -1)
 
-    #cv.imshow('test', mask_bg_colour) # TODO: remove
-    #cv.imshow('test_fg', mask_bg_colour_eroded) # TODO: remove
-    #cv.imshow('test_fg_2', mask_marker_bg) # TODO: remove
-    #cv.waitKey(0) # TODO: remove
+    # Erode mask (given that we already have the biggest green contour)
+    kernel = np.ones((3, 3), np.uint8)
+    mask_marker_bg = cv.erode(mask_marker_bg, kernel, iterations = 3)
 
     return mask_marker_bg
 
 
-def get_marker_foreground(im_hsv, config_file_data):
-    h = config_file_data['marker_bg_hue']
-    h_margin = config_file_data['marker_bg_hue_margin']
+def get_marker_foreground(im_hsv, mask_marker_bg, config_file_data):
+    h = 90#config_file_data['marker_bg_hue']
+    h_margin = 90#config_file_data['marker_bg_hue_margin']
     # Load foreground HSV data
     s_min = config_file_data['marker_fg_s_min']
     s_max = config_file_data['marker_fg_s_max']
@@ -86,8 +83,11 @@ def get_marker_foreground(im_hsv, config_file_data):
     # Get lower and upper values
     lower, upper = get_hsv_lower_and_upper(h, h_margin, s_min, s_max, v_min, v_max)
     mask_fg_colour = get_hsv_mask(im_hsv, lower, upper)
+    # Intersect mask with background mask
+    mask_fg_colour = cv.bitwise_and(mask_fg_colour, mask_fg_colour, mask=mask_marker_bg)
+
+
     #cv.imshow('test_fg', mask_fg_colour) # TODO: remove
-    #cv.waitKey(0)
 
     return mask_fg_colour
 
@@ -100,8 +100,9 @@ def marker_segmentation(im, config_file_data):
     #cv.waitKey(0)
     mask_marker_bg = get_marker_background(im_hsv, config_file_data)
     #marker_bg = cv.bitwise_and(im, im, mask=mask_marker_bg)
+    #cv.imshow('marker_bg', marker_bg) # TODO: remove
     marker_bg_hsv = cv.bitwise_and(im_hsv, im_hsv, mask=mask_marker_bg)
-    mask_marker_fg = get_marker_foreground(marker_bg_hsv, config_file_data)
+    mask_marker_fg = get_marker_foreground(marker_bg_hsv, mask_marker_bg, config_file_data)
 
     return mask_marker_bg, mask_marker_fg
 

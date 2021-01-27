@@ -5,13 +5,24 @@ from cylmarker.pose_estimation import connected_components
 import cv2 as cv
 import numpy as np
 
-def estimate_poses(cam_calib_data, config_file_data):
+
+def check_image(im, im_path):
+    if im is None:
+        print('Error opening the image {}'.format(im_path))
+        exit()
+
+
+def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
+    # Load data needed to estimate pose
+    sequence_length = len(data_pttrn['sequence_0'])
+    min_n_conn_comp = config_file_data['min_detected_lines'] * sequence_length
+    # Go through each image and estimate pose
     img_paths = load_data.load_img_paths(config_file_data)
     for im_path in img_paths:
         im = cv.imread(im_path, cv.IMREAD_COLOR)
-        # TODO: Check if image was successfully opened
+        check_image(im, im_path) # check if image was sucessfully read
         # Segment the marker
         mask_marker_bg, mask_marker_fg = img_segmentation.marker_segmentation(im, config_file_data)
-        # Find connected components
-        ## TODO: find min num of connected components
-        connected_components.find_connected_components(im, mask_marker_fg)
+        # Find features
+        ## Find connected components
+        connected_components.find_conn_comp(im, mask_marker_fg, min_n_conn_comp)

@@ -5,7 +5,7 @@ class ConnectedComponent:
         self.name = name
 
 
-def find_connected_components(im, mask_marker_fg):
+def find_conn_comp(im, mask_marker_fg, min_n_conn_comp):
     cv.imshow('im', im)
     cv.imshow('im2', mask_marker_fg)
     cv.waitKey(0)
