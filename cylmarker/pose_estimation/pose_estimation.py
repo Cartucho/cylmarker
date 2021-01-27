@@ -25,4 +25,8 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
         mask_marker_bg, mask_marker_fg = img_segmentation.marker_segmentation(im, config_file_data)
         # Find features
         ## Find connected components
-        connected_components.find_conn_comp(im, mask_marker_fg, min_n_conn_comp)
+        conn_comp_list = connected_components.find_conn_comp(im, mask_marker_fg, min_n_conn_comp)
+        print(len(conn_comp_list))
+        # TODO: Find sequences
+        # TODO: Estimate pose
+        # TODO: Validate solution
