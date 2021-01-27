@@ -18,19 +18,19 @@ def main():
     args = get_args()
     task = TASK_CHOICES.get(args.task)
     # Load data
-    cam_calib_data, config_file_data = load_data.load_yaml(args.path)
+    data_config, data_cam_calib = load_data.load_config_and_cam_calib_data(args.path)
     if task == 'pose_estimation':
         # Estimate pose for each image
-        pose_estimation.estimate_poses(cam_calib_data, config_file_data)
+        pose_estimation.estimate_poses(data_cam_calib, data_config)
     elif task == 'camera_calibration':
         pass
     elif task == 'make_new_pattern_and_marker':
         save_data.check_and_warn_if_files_will_be_replaced(args.path)
         # Make and save new pattern
-        new_pttrn = create_new_pattern.get_new_pttrn(config_file_data)
+        new_pttrn = create_new_pattern.get_new_pttrn(data_config)
         save_data.save_new_pttrn(args.path, new_pttrn)
         # Make and save new marker
-        marker_img, u_v, x_y_z = create_new_marker.draw_marker(args.path, config_file_data, new_pttrn)
+        marker_img, u_v, x_y_z = create_new_marker.draw_marker(args.path, data_config, new_pttrn)
         save_data.save_new_marker(args.path, marker_img, u_v, x_y_z)
 
 if __name__ == "__main__":

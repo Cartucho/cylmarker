@@ -13,11 +13,11 @@ new_pattern:
     pattern_size:
         n_sequences: 15 # number of sequences per pattern (= number of columns)
         sequence_length: 7 # number of features per sequence (should be > 2)
-    sequence_val_start: 0 # if starts with `0` then it will end with `1`, and vice-versa
+    sequence_val_start: 1 # if starts with `1` then it will end with `0`, and vice-versa TODO: replace with bool
     max_n_random_sequences: 100
     max_n_iterations_to_optimise_pttrn: 1000
 new_marker:
-    draw_green_bg: false # TODO: not being used currently
+    draw_green_bg: true
     use_hexagonal_distribution: true
     marker_margin_pixels:
         vertical: 198 # add both on top and bottom
