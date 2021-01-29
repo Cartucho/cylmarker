@@ -27,10 +27,13 @@ class Keypoint:
 
 class Sequence:
 
-    def __init__(self, sqnc_kpts_list, sqnc_id):
-        self.kpts_list = sqnc_kpts_list
-        self.id = sqnc_id
+    id_counter = 0
 
+    def __init__(self, sqnc_kpts_list):
+        self.kpts_list = sqnc_kpts_list
+        # Each time I create a new sequence, the id_counter increments
+        self.id = Sequence.id_counter
+        Sequence.id_counter += 1
 
 
 def draw_contours(im, contours, color):
@@ -113,18 +116,61 @@ def find_angles_with_other_keypoints(kpt_anchor, kpts_list, max_ang_diff):
                 angles.append(angle + 180.0)
                 # additional angle but keypoint is the same
                 angles_kpts.append(kpt)
-    # Sort angles
-    angles_argsort = np.argsort(angles)
+    # Convert to numpy arrays
     angles = np.array(angles)
-    print(angles[angles_argsort])
+    angles_kpts = np.array(angles_kpts)
+    # Sort them
+    angles_argsort = np.argsort(angles)
+    return angles[angles_argsort], angles_kpts[angles_argsort]
 
-    return angles, angles_kpts
+
+def find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length):
+    # Find a group of angles of size `sequence_length`.
+    # In that group, the `max - min` must be smaller than max_ang_diff.
+    """
+        example (sequence_length = 4):
+
+        iteration=1
+        [ 3.5  4.3  5.2  6.9  7.8  8.3  8.5  9.8  9.9  9.9]
+          ___  ___  ___  ___
+           ^              ^
+           |              |
+         ind_head      ind_tail
+
+        iteration=2
+        [ 3.5  4.3  5.2  6.9  7.8  8.3  8.5  9.8  9.9  9.9]
+               ___  ___  ___  ___
+                ^              ^
+                |              |
+             ind_head      ind_tail
+
+        iteration=N
+        [ 3.5  4.3  5.2  6.9  7.8  8.3  9.5  9.8  9.9  9.9]
+                                        ___  ___  ___  ___
+                                         ^              ^
+                                         |              |
+                                   ind_head_max      ind_tail
+    """
+    n_angles = len(angles)
+    ind_head_max = n_angles - sequence_length
+    sqnc = None
+    for ind_head, ang_head in enumerate(angles[0:ind_head_max + 1]): # + 1 since exclusive
+        ind_tail = ind_head + sequence_length - 1
+        if (angles[ind_tail] - angles[ind_head]) < max_ang_diff:
+            # Sequence found!
+            sqnc_kpts_list = angles_kpts[ind_head:ind_tail + 1].tolist() # + 1 since exclusive
+            # Append the anchor point too
+            sqnc_kpts_list.append(kpt_anchor)
+            sqnc = Sequence(sqnc_kpts_list)
+            break
+    return sqnc
 
 
 def group_keypoint_in_sequences(kpts_list, max_ang_diff, sequence_length):
     # ref: https://www.cs.princeton.edu/courses/archive/spring03/cs226/assignments/lines.html
     n_keypoints = len(kpts_list)
     used_kpts_counter = 0
+    sqnc_list = []
     for kpt_anchor in kpts_list:
         if (n_keypoints - used_kpts_counter) < sequence_length:
             # it won't be possible to find another sequence
@@ -132,11 +178,17 @@ def group_keypoint_in_sequences(kpts_list, max_ang_diff, sequence_length):
             # keypoints that were not used yet
             break
         if not kpt_anchor.used:
-            kpt_anchor.used = True
-            used_kpts_counter += 1
             # Find angles that the `kpt_anchor` does with the other `kpts` that were not used yet
-            find_angles_with_other_keypoints(kpt_anchor, kpts_list, max_ang_diff)
-            exit()
+            angles, angles_kpts = find_angles_with_other_keypoints(kpt_anchor, kpts_list, max_ang_diff)
+            sqnc = find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length - 1) # - 1 since we are not including the anchor
+            if sqnc is not None:
+                # Flag those keypoints as used
+                for kpt in sqnc.kpts_list:
+                    kpt.used = True
+                    used_kpts_counter += 1
+                sqnc_list.append(sqnc)
+    print(sqnc_list)
+    exit()
     return None
 
 
