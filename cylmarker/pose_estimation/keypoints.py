@@ -27,13 +27,24 @@ class Keypoint:
 
 class Sequence:
 
-    id_counter = 0
+    #id_counter = 0
 
-    def __init__(self, sqnc_kpts_list):
-        self.kpts_list = sqnc_kpts_list
+    def __init__(self, sqnc_kpts):
+        self.kpts = sqnc_kpts
+        # Data for labeling the keypoints
+        self.avrg_area = -1
+        self.id = -1
         # Each time I create a new sequence, the id_counter increments
-        self.id = Sequence.id_counter
-        Sequence.id_counter += 1
+        #self.id = Sequence.id_counter
+        #Sequence.id_counter += 1
+
+
+    def calculate_avrg_area(self):
+        area_sum = 0.0
+        for counter, kpt in enumerate(self.kpts):
+            area_sum += kpt.area
+        self.avrg_area = area_sum / counter
+
 
 
 def draw_contours(im, contours, color):
@@ -124,6 +135,23 @@ def find_angles_with_other_keypoints(kpt_anchor, kpts_list, max_ang_diff):
     return angles[angles_argsort], angles_kpts[angles_argsort]
 
 
+def sort_kpts_by_dist_to_anchor(sqnc_kpts, ang_median, kpt_anchor):
+    ang_median = 180.0 - ang_median
+    ang_median_rad = math.radians(ang_median)
+
+    dist_anchor = [] # store distances to anchor point
+    for kpt in sqnc_kpts:
+        u_new = - kpt.anchor_du * math.cos(ang_median_rad) + kpt.anchor_dv * math.sin(ang_median_rad)
+        dist_anchor.append(u_new)
+
+    # Add anchor point too
+    sqnc_kpts = np.append(sqnc_kpts, kpt_anchor)
+    dist_anchor.append(0.0) # Distance from anchor to anchor = 0.0
+
+    dist_anchor_argsort = np.argsort(dist_anchor)
+    return sqnc_kpts[dist_anchor_argsort]
+
+
 def find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length):
     # Find a group of angles of size `sequence_length`.
     # In that group, the `max - min` must be smaller than max_ang_diff.
@@ -158,20 +186,21 @@ def find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length
         ind_tail = ind_head + sequence_length - 1
         if (angles[ind_tail] - angles[ind_head]) < max_ang_diff:
             # Sequence found!
-            sqnc_kpts_list = angles_kpts[ind_head:ind_tail + 1].tolist() # + 1 since exclusive
-            # Append the anchor point too
-            sqnc_kpts_list.append(kpt_anchor)
-            sqnc = Sequence(sqnc_kpts_list)
+            sqnc_kpts = angles_kpts[ind_head:ind_tail + 1] # + 1 since exclusive
+            ang_median = np.median(angles[ind_head:ind_tail + 1]) # + 1 since exclusive
+            sqnc_kpts = sort_kpts_by_dist_to_anchor(sqnc_kpts, ang_median, kpt_anchor)
+            # Create sequence object
+            sqnc = Sequence(sqnc_kpts)
             break
     return sqnc
 
 
-def group_keypoint_in_sequences(kpts_list, max_ang_diff, sequence_length):
+def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length):
     # ref: https://www.cs.princeton.edu/courses/archive/spring03/cs226/assignments/lines.html
-    n_keypoints = len(kpts_list)
+    n_keypoints = len(sqnc_kpts)
     used_kpts_counter = 0
     sqnc_list = []
-    for kpt_anchor in kpts_list:
+    for kpt_anchor in sqnc_kpts:
         if (n_keypoints - used_kpts_counter) < sequence_length:
             # it won't be possible to find another sequence
             # since we would need at least n = sequence_length
@@ -179,17 +208,15 @@ def group_keypoint_in_sequences(kpts_list, max_ang_diff, sequence_length):
             break
         if not kpt_anchor.used:
             # Find angles that the `kpt_anchor` does with the other `kpts` that were not used yet
-            angles, angles_kpts = find_angles_with_other_keypoints(kpt_anchor, kpts_list, max_ang_diff)
+            angles, angles_kpts = find_angles_with_other_keypoints(kpt_anchor, sqnc_kpts, max_ang_diff)
             sqnc = find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length - 1) # - 1 since we are not including the anchor
             if sqnc is not None:
                 # Flag those keypoints as used
-                for kpt in sqnc.kpts_list:
+                for kpt in sqnc.kpts:
                     kpt.used = True
                     used_kpts_counter += 1
                 sqnc_list.append(sqnc)
-    print(sqnc_list)
-    exit()
-    return None
+    return sqnc_list
 
 
 def filter_contours_by_min_area(contours, min_contour_area):
@@ -231,12 +258,35 @@ def get_connected_components(mask_marker_fg, min_n_keypoints):
     return cnnctd_cmp_list
 
 
-def find_keypoints(mask_marker_fg, min_n_keypoints, max_ang_diff, sequence_length):
+def identify_sequence_and_keypoints(sqnc_list, data_pttrn, sequence_length):
+    # TODO: Keep track of the ones that were already matched
+    # Label keypoints as False or True
+    for sqnc in sqnc_list:
+        sqnc.calculate_avrg_area()
+        sqnc_code = []
+        for kpt in sqnc.kpts:
+            if kpt.area < sqnc.avrg_area:
+                kpt.label = False
+            else:
+                kpt.label = True
+            sqnc_code.append(kpt.label)
+        print(sqnc_code)
+        #sqnc.sqnc_code = sqnc_code
+        # Identify sequence
+        #for sqnc_id in 
+        ## The code may be upside down
+    # Identify keypoints
+    #codes = sqnc.get_code()
+
+
+def find_keypoints(mask_marker_fg, min_n_keypoints, max_ang_diff, sequence_length, data_pttrn):
     cnnctd_cmp_list = get_connected_components(mask_marker_fg, min_n_keypoints)
     if not cnnctd_cmp_list:
         return None # Not enough connected components detected
     # Group the connected components in sequences
-    sequences = group_keypoint_in_sequences(cnnctd_cmp_list, max_ang_diff, sequence_length)
-    # TODO: Identify keypoints
-
-    return keypoints_list
+    sqnc_list = group_keypoint_in_sequences(cnnctd_cmp_list, max_ang_diff, sequence_length)
+    # Identify keypoints
+    identify_sequence_and_keypoints(sqnc_list, data_pttrn, sequence_length)
+    print(data_pttrn)
+    exit()
+    return sqnc_list

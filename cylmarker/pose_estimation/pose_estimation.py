@@ -24,6 +24,6 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
         # Segment the marker
         mask_marker_bg, mask_marker_fg = img_segmentation.marker_segmentation(im, config_file_data)
         # Find keypoints
-        keypoints_list = keypoints.find_keypoints(mask_marker_fg, min_n_keypoints, max_ang_diff, sequence_length)
+        keypoints_list = keypoints.find_keypoints(mask_marker_fg, min_n_keypoints, max_ang_diff, sequence_length, data_pttrn)
         # TODO: Estimate pose
         # TODO: Validate solution
