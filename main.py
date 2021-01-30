@@ -31,8 +31,8 @@ def main():
         new_pttrn = create_new_pattern.get_new_pttrn(data_config)
         save_data.save_new_pttrn(args.path, new_pttrn)
         # Make and save new marker
-        marker_img, u_v, x_y_z = create_new_marker.draw_marker(args.path, data_config, new_pttrn)
-        save_data.save_new_marker(args.path, marker_img, u_v, x_y_z)
+        marker_img, u_v, x_y_z, kpts = create_new_marker.draw_marker(args.path, data_config, new_pttrn)
+        save_data.save_new_marker(args.path, marker_img, u_v, x_y_z, kpts)
 
 if __name__ == "__main__":
     main()

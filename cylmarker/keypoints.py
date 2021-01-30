@@ -6,23 +6,44 @@ import numpy as np
 
 class Keypoint:
 
-    def __init__(self, centre_u, centre_v):
+    def __init__(self, centre_u, centre_v, label=-1, kpt_id=-1):
         self.centre_u = centre_u
         self.centre_v = centre_v
         # Initially we do not know the label or the id
-        self.label = -1
-        self.id = -1
-        # Data for grouping in sequences
-        self.used = False
-        self.anchor_du = -1.
-        self.anchor_dv = -1.
+        self.label = label
+        self.kpt_id = kpt_id
+        self.used = False # For grouping in sequences (keypoint detection)
 
-    def add_contour(self, contour):
-        self.contour = contour
-        self.area = cv.contourArea(contour)
+    def add_contour(self, cntr):
+        self.cntr = cntr
+        self.cntr_area = cv.contourArea(cntr)
 
     def get_centre(self):
         return self.centre_u, self.centre_v
+
+    def set_anchor_du_dv(self, anchor_du, anchor_dv):
+        self.anchor_du = anchor_du
+        self.anchor_dv = anchor_dv
+
+    def add_corner_pts_uv(self, corners_uv):
+        self.corners_uv = corners_uv
+
+    def calculate_xyz(self, radius, mm_per_pixel, marker_width, tmp_uv):
+        u, v = tmp_uv
+        x = v * mm_per_pixel
+        alpha = math.radians((u/marker_width) * 360.0)
+        y = radius * math.sin(alpha)
+        z = radius * math.cos(alpha)
+        return x, y, z
+
+    def calculate_xyz_centre_and_corners(self, rad, mm_pixel, width):
+        tmp_uv = [self.centre_u, self.centre_v]
+        x, y, z = self.calculate_xyz(rad, mm_pixel, width, tmp_uv)
+        self.xyz_centre = [x, y, z]
+        self.xyz_corners = []
+        for tmp_uv in self.corners_uv:
+            x, y, z = self.calculate_xyz(rad, mm_pixel, width, tmp_uv)
+            self.xyz_corners.append([x, y, z])
 
 
 class Sequence:
@@ -42,7 +63,7 @@ class Sequence:
     def calculate_avrg_area(self):
         area_sum = 0.0
         for counter, kpt in enumerate(self.kpts):
-            area_sum += kpt.area
+            area_sum += kpt.cntr_area
         self.avrg_area = area_sum / counter
 
 
@@ -68,8 +89,7 @@ def find_angles_with_other_keypoints(kpt_anchor, kpts_list, max_ang_diff):
             """
             du = (anchor_u - u)
             dv = (anchor_v - v)
-            kpt.anchor_du = du
-            kpt.anchor_dv = dv
+            kpt.set_anchor_du_dv(du, dv)
 
             angle_rads = math.atan2(dv, du)
             angle = math.degrees(angle_rads % (2 * math.pi)) # get angle between [0* and 360*[
@@ -265,7 +285,7 @@ def identify_sequence_and_keypoints(sqnc_list, data_pttrn, sequence_length):
         sqnc.calculate_avrg_area()
         sqnc_code = []
         for kpt in sqnc.kpts:
-            if kpt.area < sqnc.avrg_area:
+            if kpt.cntr_area < sqnc.avrg_area:
                 kpt.label = False
             else:
                 kpt.label = True

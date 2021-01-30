@@ -1,11 +1,11 @@
-from cylmarker import load_data
+from cylmarker import load_data, keypoints
 import os
 import math
 
 import svgwrite
 
 
-def draw_dash_and_dot(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, feature_color):
+def draw_dash_and_dot(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, feature_color, kpt_id):
     """  a_b
          | |
          |x|   x = (u, v)
@@ -37,31 +37,11 @@ def draw_dash_and_dot(new_marker, u, v, feature_size_u_half, feature_size_v_half
         stroke='none',
         fill=feature_color)
     )
-    return new_marker
 
+    kpt = keypoints.Keypoint(u, v, val_bool, kpt_id)
+    kpt.add_corner_pts_uv(points[:-1]) # Exclude last point, which repeats
 
-def draw_corner(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, feature_color):
-    """
-        a  b
-         \/
-         /\
-        c  d
-    """
-    a = [u - feature_size_u_half, v - feature_size_v_half]
-    b = [u + feature_size_u_half, v - feature_size_v_half]
-    c = [u - feature_size_u_half, v + feature_size_v_half]
-    d = [u + feature_size_u_half, v + feature_size_v_half]
-    if val_bool:
-        points = [a, b, c, d, a]
-    else:
-        points = [a, c, b, d, a]
-    new_marker.add(new_marker.polygon(points=points,
-        stroke='none',
-        #stroke=svgwrite.rgb(0, 0, 0, '%'),
-        #stroke_width=10.0,
-        fill=feature_color)
-    )
-    return new_marker
+    return new_marker, kpt
 
 
 def draw_marker(data_dir, config_file_data, new_pttrn):
@@ -163,6 +143,8 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
     delta_u = feature_size_u + feature_margin_u
     init_v = marker_margin_v + feature_size_v_half
     delta_v = feature_size_v + feature_margin_v
+    kpt_id = 0
+    kpts = []
     for i, sequence in enumerate(new_pttrn):
         tmp_u_v = []
         tmp_x_y_z = []
@@ -173,8 +155,11 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
             shift_v = hexagonal_shift_v
         for j, val_bool in enumerate(sequence):
             v = init_v + shift_v +  j * delta_v
-            #new_marker = draw_corner(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, black)
-            new_marker = draw_dash_and_dot(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, black)
+            new_marker, kpt = draw_dash_and_dot(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, black, kpt_id)
+            kpt.calculate_xyz_centre_and_corners(radius, mm_per_pixel, marker_width)
+            kpts.append(kpt)
+            kpt_id += 1
+
             tmp_u_v.append([u, v])
             x = v * mm_per_pixel
             alpha = math.radians((u/marker_width) * 360.0)
@@ -185,7 +170,7 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
         x_y_z.append(tmp_x_y_z)
 
     # Draw marker features according to the `new_pttrn`
-    return new_marker, u_v, x_y_z
+    return new_marker, u_v, x_y_z, kpts
 
 
 

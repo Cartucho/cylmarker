@@ -48,10 +48,12 @@ def save_new_pttrn(data_dir, new_pttrn):
         yaml.dump(data_pattrn, f) # vertical is more intuitive, since the sequences are columns in the marker
 
 
-def save_new_marker(data_dir, new_marker, u_v, x_y_z):
+def save_new_marker(data_dir, new_marker, u_v, x_y_z, kpts):
     # Save marker image file (the `svgwrite` library automatically replaces any old file)
     new_marker.save()
     # Save marker data
+    print(kpts)
+    exit()
     file_marker_data = load_data.get_path_marker_data(data_dir)
     delete_file_if_exists(file_marker_data)
     data_marker = {}
