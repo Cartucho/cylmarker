@@ -6,39 +6,37 @@ import svgwrite
 
 
 def draw_dash_and_dot(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, feature_color):
+    """  a_b
+         | |
+         |x|   x = (u, v)
+         |_|
+         d c
+
+         e_f
+         |x|   x = (u, v)
+         g-h
     """
-         |
-         .
-         |
-         .
-    """
+    # Rectangle
     a = [u - feature_size_u_half, v - feature_size_v_half]
     b = [u + feature_size_u_half, v - feature_size_v_half]
-    c = [u - feature_size_u_half, v + feature_size_v_half]
-    d = [u + feature_size_u_half, v + feature_size_v_half]
+    c = [u + feature_size_u_half, v + feature_size_v_half]
+    d = [u - feature_size_u_half, v + feature_size_v_half]
+    # Square
+    e = [u - feature_size_u_half, v - feature_size_u_half]
+    f = [u + feature_size_u_half, v - feature_size_u_half]
+    g = [u + feature_size_u_half, v + feature_size_u_half]
+    h = [u - feature_size_u_half, v + feature_size_u_half]
     if val_bool:
-        """ Ellipse """
-        """
-        new_marker.add(new_marker.ellipse(center=(u, v),
-            r=(feature_size_u_half, feature_size_v_half),
-            stroke='none',
-            fill=feature_color)
-        )
-        """
         """ Rectangle """
-        points = [a, b, d, c, a]
-        new_marker.add(new_marker.polygon(points=points,
-            stroke='none',
-            #stroke=svgwrite.rgb(0, 0, 0, '%'),
-            #stroke_width=10.0,
-            fill=feature_color)
-        )
+        points = [a, b, c, d, a]
     else:
-        new_marker.add(new_marker.circle(center=(u, v),
-            r=feature_size_u_half,
-            stroke='none',
-            fill=feature_color)
-        )
+        """ Square """
+        points = [e, f, g, h, e]
+
+    new_marker.add(new_marker.polygon(points=points,
+        stroke='none',
+        fill=feature_color)
+    )
     return new_marker
 
 
