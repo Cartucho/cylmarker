@@ -1,5 +1,5 @@
-from cylmarker import load_data
-from cylmarker.pose_estimation import img_segmentation, keypoints
+from cylmarker import load_data, keypoints
+from cylmarker.pose_estimation import img_segmentation
 
 import cv2 as cv
 import numpy as np

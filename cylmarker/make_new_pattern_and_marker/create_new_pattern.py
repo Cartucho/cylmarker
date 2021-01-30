@@ -5,6 +5,11 @@ import numpy as np
 from tqdm import tqdm
 
 
+def arreq_in_list(myarr, list_arrays):
+    """ ref: https://stackoverflow.com/questions/23979146/check-if-numpy-array-is-in-list-of-numpy-arrays """
+    return next((True for elem in list_arrays if np.array_equal(elem, myarr)), False)
+
+
 def get_list_of_possible_sequences(pattern_size, max_n_random_sequences):
     # Get number of sequences in the pattern (number of columns)
     n_sequences = pattern_size['n_sequences']
@@ -24,13 +29,14 @@ def get_list_of_possible_sequences(pattern_size, max_n_random_sequences):
     print('\nFinding the possible sequences...')
     n_possible_sequences = 2 ** size_of_random_part_of_sequence
     if n_possible_sequences < max_n_random_sequences:
-        possible_sequences = []
         for sequence in tqdm(itertools.product([True, False], repeat=size_of_random_part_of_sequence), total=n_possible_sequences):
             possible_sequences.append(sequence)
     else:
         for i in tqdm(range(max_n_random_sequences)):
             it = np.random.choice([True, False], size=size_of_random_part_of_sequence)
-            possible_sequences.append(it)
+            if not arreq_in_list(it, possible_sequences):
+                # append if it does not exist yet
+                possible_sequences.append(it)
     return possible_sequences
 
 

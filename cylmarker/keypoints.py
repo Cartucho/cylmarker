@@ -6,14 +6,12 @@ import numpy as np
 
 class Keypoint:
 
-    def __init__(self, centre_u, centre_v, label=-1, kpt_id=-1):
+    def __init__(self, centre_u, centre_v):
         self.centre_u = centre_u
         self.centre_v = centre_v
-        # `label` and `id` by default will be set to -1
-        self.label = label
-        self.id = kpt_id
-
-    def init_values_for_kpt_detection(self):
+        # Initially we do not know the label or the id
+        self.label = -1
+        self.id = -1
         # Data for grouping in sequences
         self.used = False
         self.anchor_du = -1.
@@ -254,7 +252,6 @@ def get_connected_components(mask_marker_fg, min_n_keypoints):
     for cntr in contours:
         centre_u, centre_v = calculate_contour_centre(cntr)
         kpt = Keypoint(centre_u, centre_v)
-        kpt.init_values_for_kpt_detection()
         kpt.add_contour(cntr)
         cnnctd_cmp_list.append(kpt)
 
