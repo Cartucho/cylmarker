@@ -152,7 +152,7 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
         for j, kpt in enumerate(sqnc.list_kpts):
             v = init_v + shift_v +  j * delta_v
             new_marker, kpt = draw_dash_and_dot(new_marker, kpt, u, v, feature_size_u_half, feature_size_v_half, black)
-            kpt.set_xyz_of_centre_and_corners(radius, mm_per_pixel, marker_width)
+            kpt.calculate_xyz_of_centre_and_corners(radius, mm_per_pixel, marker_width)
 
     return new_marker, new_pttrn
 

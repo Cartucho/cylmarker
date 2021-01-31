@@ -5,7 +5,6 @@ from distutils.util import strtobool # for query_yes_no()
 import yaml # for save_new_pttrn()
 
 
-
 def query_yes_no(question):
     # ref: https://stackoverflow.com/questions/3041986/apt-command-line-interface-like-yes-no-input
     print('{} [y/n]'.format(question))
@@ -40,16 +39,16 @@ def save_new_pttrn(data_dir, new_pttrn):
     delete_file_if_exists(file_pattern)
     data_pattrn = {}
     for sqnc in new_pttrn.list_sqnc:
-        sqnc_name = sqnc.get_sqnc_name()
+        sqnc_id = sqnc.sqnc_id
         sqnc_data = {}
         code, kpt_ids = sqnc.get_code_and_kpt_ids()
-        sqnc_data['code'] = code
-        sqnc_data['kpt_ids'] = kpt_ids
-        data_pattrn[sqnc_name] = sqnc_data
+        sqnc_data[sqnc.NAME_CODE] = code
+        sqnc_data[sqnc.NAME_KPT_IDS] = kpt_ids
+        data_pattrn[sqnc_id] = sqnc_data
     # Save pattern data
     with open(file_pattern, 'w') as f:
         #data = yaml.dump(data_pattrn, f, default_flow_style=None) # horizontal alignment instead of vertical
-        yaml.dump(data_pattrn, f) # vertical is more intuitive, since the sequences are columns in the marker
+        yaml.dump(data_pattrn, f, sort_keys=True) # vertical is more intuitive, since the sequences are columns in the marker
 
 
 def save_new_marker(data_dir, new_marker, new_pttrn):
@@ -61,18 +60,20 @@ def save_new_marker(data_dir, new_marker, new_pttrn):
     data_marker = {}
 
     for sqnc in new_pttrn.list_sqnc:
-        sqnc_name = sqnc.get_sqnc_name()
+        sqnc_id = sqnc.sqnc_id
         sqnc_data = {}
         for kpt in sqnc.list_kpts:
             kpt_id = kpt.kpt_id
             kpt_data = {}
             uv, xyz = kpt.get_centre_info()
-            kpt_data['centre_uv'] = uv
-            kpt_data['centre_xyz'] = xyz
+            kpt_data[kpt.NAME_CNT_UV] = uv
+            kpt_data[kpt.NAME_CNT_XYZ] = xyz
+            kpt_data_corners = {}
             for corner_ind, corner_xyz in enumerate(kpt.xyz_corners):
-                kpt_data['corner_{}_xyz'.format(corner_ind)] = corner_xyz
+                kpt_data_corners[corner_ind] = corner_xyz
+            kpt_data[kpt.NAME_CRN_XYZ] = kpt_data_corners
             sqnc_data[kpt_id] = kpt_data
-        data_marker[sqnc_name] = sqnc_data
+        data_marker[sqnc_id] = sqnc_data
 
     # Save in yaml file
     with open(file_marker_data, 'w') as f:

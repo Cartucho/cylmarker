@@ -1,10 +1,15 @@
 import math
+import copy
 
 import cv2 as cv
 import numpy as np
 
 
 class Keypoint:
+
+    NAME_CNT_UV = 'centre_uv'
+    NAME_CNT_XYZ = 'centre_xyz'
+    NAME_CRN_XYZ = 'corner_xyz'
 
     def __init__(self, label=-1, kpt_id=-1):
         self.label = label
@@ -36,7 +41,7 @@ class Keypoint:
         z = radius * math.cos(alpha)
         return x, y, z
 
-    def set_xyz_of_centre_and_corners(self, rad, mm_pixel, width):
+    def calculate_xyz_of_centre_and_corners(self, rad, mm_pixel, width):
         tmp_uv = [self.centre_u, self.centre_v]
         x, y, z = self.calculate_xyz(rad, mm_pixel, width, tmp_uv)
         self.xyz_centre = [x, y, z]
@@ -44,6 +49,14 @@ class Keypoint:
         for tmp_uv in self.corners_uv:
             x, y, z = self.calculate_xyz(rad, mm_pixel, width, tmp_uv)
             self.xyz_corners.append([x, y, z])
+
+    def set_xyz_of_centre_and_corners(self, data_marker_kpt):
+        self.xyz_centre = data_marker_kpt['centre_xyz']
+        kpt_corners_data = data_marker_kpt[self.NAME_CRN_XYZ]
+        self.xyz_corners = []
+        for corner_id in kpt_corners_data:
+            tmp_xyz = kpt_corners_data[corner_id]
+            self.xyz_corners.append(tmp_xyz)
 
     def set_contour(self, cntr):
         self.cntr = cntr
@@ -56,11 +69,16 @@ class Keypoint:
 
 class Sequence:
 
-    SQNC_NAME_HEAD = 'sequence_'
+    NAME_SQNC = 'sequence_{}'
+    NAME_CODE = 'code'
+    NAME_KPT_IDS = 'kpt_ids'
 
     def __init__(self, list_kpts, sqnc_id=-1):
         self.list_kpts = list_kpts
-        self.sqnc_id = sqnc_id
+        if sqnc_id != -1:
+            self.sqnc_id = self.NAME_SQNC.format(sqnc_id)
+        else:
+            self.sqnc_id = sqnc_id
 
     def calculate_avrg_area(self):
         area_sum = 0.0
@@ -68,16 +86,26 @@ class Sequence:
             area_sum += kpt.cntr_area
         self.avrg_area = area_sum / counter
 
-    def get_sqnc_name(self):
-        return '{}{}'.format(self.SQNC_NAME_HEAD, self.sqnc_id)
-
-    def get_code_and_kpt_ids(self):
+    def get_code(self):
         code = []
-        kpt_ids = []
         for kpt in self.list_kpts:
             code.append(kpt.label)
+        return code
+
+    def get_kpt_ids(self):
+        kpt_ids = []
+        for kpt in self.list_kpts:
             kpt_ids.append(kpt.kpt_id)
-        return code, kpt_ids
+        return kpt_ids
+
+    def get_code_and_kpt_ids(self):
+        return self.get_code(), self.get_kpt_ids()
+
+    def identify_and_copy_kpt_data(self, kpt_ids, data_marker):
+        for i, kpt in enumerate(self.list_kpts):
+            kpt.kpt_id = kpt_ids[i]
+            data_marker_kpt = data_marker[kpt.kpt_id]
+            kpt.set_xyz_of_centre_and_corners(data_marker_kpt)
 
 
 class Pattern:
@@ -233,7 +261,7 @@ def find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length
     return sqnc
 
 
-def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length):
+def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length, min_detected_lines):
     # ref: https://www.cs.princeton.edu/courses/archive/spring03/cs226/assignments/lines.html
     n_keypoints = len(sqnc_kpts)
     used_kpts_counter = 0
@@ -254,6 +282,8 @@ def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length):
                     kpt.used = True
                     used_kpts_counter += 1
                 sqnc_list.append(sqnc)
+    if len(sqnc_list) < min_detected_lines:
+        return None
     pttrn = Pattern(sqnc_list)
     return pttrn
 
@@ -280,14 +310,14 @@ def calculate_contour_centre(cntr):
 
 
 def get_connected_components(mask_marker_fg, min_n_keypoints):
-    cnnctd_cmp_list = []
     # Using connected components as keypoints (later in the code they will be uniquely identified)
     contours, _hierarchy = cv.findContours(mask_marker_fg, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
     n_keypoints_detected = len(contours)
     if n_keypoints_detected < min_n_keypoints:
-        return cnnctd_cmp_list # return empty list
+        return None
     #filter_contours_by_min_area(contours, min_contour_area) # TODO: add min_contour_area to config file
 
+    cnnctd_cmp_list = []
     for cntr in contours:
         centre_u, centre_v = calculate_contour_centre(cntr)
         kpt = Keypoint()
@@ -298,34 +328,57 @@ def get_connected_components(mask_marker_fg, min_n_keypoints):
     return cnnctd_cmp_list
 
 
-def identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length):
-    # TODO: Keep track of the ones that were already matched
-    # Label keypoints as False or True
+def find_code_match(sqnc, data_pttrn, name_code, name_kpt_ids, used_ind):
+    sqnc_code = sqnc.get_code()
+    for ind, name_sqnc in enumerate(data_pttrn):
+        if ind not in used_ind:
+            pttrn_sqnc = data_pttrn[name_sqnc]
+            pttrn_code = pttrn_sqnc[name_code]
+            if sqnc_code == pttrn_code: #the equality operator == compares a list element-wise
+                used_ind.append(ind)
+                sqnc.sqnc_id = name_sqnc
+                return sqnc, pttrn_sqnc[name_kpt_ids], used_ind
+            elif sqnc_code == pttrn_code[::-1]: # check reverted pattern too
+                used_ind.append(ind)
+                sqnc.sqnc_id = name_sqnc
+                return sqnc, pttrn_sqnc[name_kpt_ids][::-1], used_ind
+    return sqnc, None, used_ind
+
+
+def identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length, min_detected_lines, data_marker):
+    # Label keypoints as 0 or 1
     for sqnc in pttrn.list_sqnc:
         sqnc.calculate_avrg_area()
-        sqnc_code = []
         for kpt in sqnc.list_kpts:
             if kpt.cntr_area < sqnc.avrg_area:
                 kpt.label = 0
             else:
                 kpt.label = 1
-            sqnc_code.append(kpt.label)
-        #sqnc.sqnc_code = sqnc_code
-        # Identify sequence
-        #for sqnc_id in 
-        ## The code may be upside down
+
     # Identify keypoints
-    #codes = sqnc.get_code()
+    used_ind = [] # keep track of the sequences that were already found
+    for sqnc in pttrn.list_sqnc:
+        sqnc, kpt_ids, used_ind = find_code_match(sqnc, data_pttrn, sqnc.NAME_CODE, sqnc.NAME_KPT_IDS, used_ind)
+        if kpt_ids is not None:
+            sqnc.identify_and_copy_kpt_data(kpt_ids, data_marker[sqnc.sqnc_id])
 
+    if len(used_ind) < min_detected_lines:
+        return None
 
-def find_keypoints(mask_marker_fg, min_n_keypoints, max_ang_diff, sequence_length, data_pttrn):
+    return pttrn
+
+def find_keypoints(mask_marker_fg, min_detected_lines, max_ang_diff, sequence_length, data_pttrn, data_marker):
+    min_n_keypoints = min_detected_lines * sequence_length
     cnnctd_cmp_list = get_connected_components(mask_marker_fg, min_n_keypoints)
-    if not cnnctd_cmp_list:
+    if cnnctd_cmp_list is None:
         return None # Not enough connected components detected
     # Group the connected components in sequences
-    pttrn = group_keypoint_in_sequences(cnnctd_cmp_list, max_ang_diff, sequence_length)
+    pttrn = group_keypoint_in_sequences(cnnctd_cmp_list, max_ang_diff, sequence_length, min_detected_lines)
+    if pttrn is None:
+        return None # Not enough lines detected
     # Identify keypoints
-    identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length)
-    print(data_pttrn)
+    pttrn = identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length, min_detected_lines, data_marker)
     exit()
+    if pttrn is None:
+        return None # Not enough lines identified
     return sqnc_list
