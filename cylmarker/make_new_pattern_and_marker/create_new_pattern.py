@@ -1,3 +1,4 @@
+from cylmarker import keypoints
 import random
 
 import itertools
@@ -29,11 +30,11 @@ def get_list_of_possible_sequences(pattern_size, max_n_random_sequences):
     print('\nFinding the possible sequences...')
     n_possible_sequences = 2 ** size_of_random_part_of_sequence
     if n_possible_sequences < max_n_random_sequences:
-        for sequence in tqdm(itertools.product([True, False], repeat=size_of_random_part_of_sequence), total=n_possible_sequences):
+        for sequence in tqdm(itertools.product([1, 0], repeat=size_of_random_part_of_sequence), total=n_possible_sequences):
             possible_sequences.append(sequence)
     else:
         for i in tqdm(range(max_n_random_sequences)):
-            it = np.random.choice([True, False], size=size_of_random_part_of_sequence)
+            it = np.random.choice([1, 0], size=size_of_random_part_of_sequence)
             if not arreq_in_list(it, possible_sequences):
                 # append if it does not exist yet
                 possible_sequences.append(it)
@@ -95,35 +96,55 @@ def get_best_pattern_from_possible_sequences(pttrn_size, possible_sequences, n_i
     return best_pattern
 
 
-def append_sequence_value_start_and_end(pttrn, sequence_val_start, sequence_val_end):
+def append_sequence_value_start_and_end(pttrn, sequence_head, sequence_tail):
     pttrn_completed = []
     for sequence in pttrn:
-        # prepend `sequence_val_start`
-        sequence = np.insert(sequence, 0, bool(sequence_val_start), axis=0)
+        # prepend `sequence_head`
+        sequence = np.insert(sequence, 0, sequence_head, axis=0)
         # append `sequence_val_end`
-        sequence = np.append(sequence, bool(sequence_val_end))
+        sequence = np.append(sequence, sequence_tail)
         # save it
         pttrn_completed.append(sequence)
     return pttrn_completed
 
 
+def create_keypoints_sequences_and_pattern(pttrn_completed):
+    sqnc_id = 0
+    kpt_id = 0
+    list_sqnc = []
+    for pttrn_sq in pttrn_completed:
+        list_kpts = []
+        for kpt_val in pttrn_sq:
+            kpt = keypoints.Keypoint(int(kpt_val), kpt_id)
+            kpt_id += 1
+            list_kpts.append(kpt)
+        sqnc = keypoints.Sequence(list_kpts, sqnc_id)
+        sqnc_id += 1
+        list_sqnc.append(sqnc)
+    return keypoints.Pattern(list_sqnc)
+
+
 def get_new_pttrn(config_file_data):
+    # TODO: instead of comparing the entire pattern e.g., [1, 0, 1, 0, 1, 0] I could just compare the
+    #       associated decimal representation of that binary number.
     pttrn_data = config_file_data['new_pattern']
     pttrn_size = pttrn_data['pattern_size']
-    sequence_val_start = pttrn_data['sequence_val_start']
-    sequence_val_end   = 1 - sequence_val_start # if one is `0`, the other is `1`
+    sequence_head = pttrn_data['sequence_head']
+    sequence_tail = 1 - sequence_head # if one is `0`, the other is `1`
     """
-      We want a random sequence that starts with a fixed `sequence_val_start` (pre-defined in the config file).
-      If the `sequence_val_start` is 1 then the last value of the sequence is 0, and vice-versa to avoid having
+      We want a random sequence that starts with a fixed `sequence_head` (pre-defined in the config file).
+      If the `sequence_head` is 1 then the last value of the sequence is 0, and vice-versa to avoid having
       symmetric sequences. Since the first and last value of each sequence is already pre-defined, we only
       need to calculate the inner parts of the sequence (of size `sequence_length` - 2). Therefore, here we will
       create and select the best `n_sequences` of size `sequence_length` - 2 to form a pattern. Finally, we will
-      append the `sequence_val_start` and `sequence_val_end`, to complete the new pattern.
+      append the `sequence_head` and `sequence_tail`, to complete the new pattern.
     """
     # Get a number of possible sequences (< max_n_random_sequences) that can be used in the pattern
     possible_sequences = get_list_of_possible_sequences(pttrn_size, pttrn_data['max_n_random_sequences'])
     # Given the selected possible sequences, get the best pattern (with more differences between sequences)
     best_pttrn = get_best_pattern_from_possible_sequences(pttrn_size, possible_sequences, pttrn_data['max_n_iterations_to_optimise_pttrn'])
-    # Finally, append the fixed/pre-defined `sequence_val_start` and `sequence_val_end`
-    pttrn_completed = append_sequence_value_start_and_end(best_pttrn, sequence_val_start, sequence_val_end)
-    return pttrn_completed
+    # Finally, append the fixed/pre-defined `sequence_head` and `sequence_tail`
+    pttrn_completed = append_sequence_value_start_and_end(best_pttrn, sequence_head, sequence_tail)
+    # Create a pattern object
+    new_pttrn = create_keypoints_sequences_and_pattern(pttrn_completed)
+    return new_pttrn

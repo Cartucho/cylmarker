@@ -6,26 +6,23 @@ import numpy as np
 
 class Keypoint:
 
-    def __init__(self, centre_u, centre_v, label=-1, kpt_id=-1):
-        self.centre_u = centre_u
-        self.centre_v = centre_v
-        # Initially we do not know the label or the id
+    def __init__(self, label=-1, kpt_id=-1):
         self.label = label
         self.kpt_id = kpt_id
         self.used = False # For grouping in sequences (keypoint detection)
 
-    def add_contour(self, cntr):
-        self.cntr = cntr
-        self.cntr_area = cv.contourArea(cntr)
+    def set_label_and_id(self, label, kpt_id):
+        self.label = label
+        self.kpt_id = kpt_id
 
-    def get_centre(self):
-        return self.centre_u, self.centre_v
+    def set_centre_uv(self, centre_u, centre_v):
+        self.centre_u = centre_u
+        self.centre_v = centre_v
 
-    def set_anchor_du_dv(self, anchor_du, anchor_dv):
-        self.anchor_du = anchor_du
-        self.anchor_dv = anchor_dv
+    def get_centre_info(self):
+        return [self.centre_u, self.centre_v], self.xyz_centre
 
-    def add_corner_pts_uv(self, corners_uv):
+    def set_corner_pts_uv(self, corners_uv):
         self.corners_uv = corners_uv
 
     def calculate_xyz(self, radius, mm_per_pixel, marker_width, tmp_uv):
@@ -36,7 +33,7 @@ class Keypoint:
         z = radius * math.cos(alpha)
         return x, y, z
 
-    def calculate_xyz_centre_and_corners(self, rad, mm_pixel, width):
+    def set_xyz_of_centre_and_corners(self, rad, mm_pixel, width):
         tmp_uv = [self.centre_u, self.centre_v]
         x, y, z = self.calculate_xyz(rad, mm_pixel, width, tmp_uv)
         self.xyz_centre = [x, y, z]
@@ -45,27 +42,43 @@ class Keypoint:
             x, y, z = self.calculate_xyz(rad, mm_pixel, width, tmp_uv)
             self.xyz_corners.append([x, y, z])
 
+    def set_contour(self, cntr):
+        self.cntr = cntr
+        self.cntr_area = cv.contourArea(cntr)
+
+    def set_anchor_du_dv(self, anchor_du, anchor_dv):
+        self.anchor_du = anchor_du
+        self.anchor_dv = anchor_dv
+
 
 class Sequence:
 
-    #id_counter = 0
-
-    def __init__(self, sqnc_kpts):
-        self.kpts = sqnc_kpts
-        # Data for labeling the keypoints
-        self.avrg_area = -1
-        self.id = -1
-        # Each time I create a new sequence, the id_counter increments
-        #self.id = Sequence.id_counter
-        #Sequence.id_counter += 1
-
+    def __init__(self, list_kpts, sqnc_id=-1):
+        self.list_kpts = list_kpts
+        self.sqnc_id = sqnc_id
 
     def calculate_avrg_area(self):
         area_sum = 0.0
-        for counter, kpt in enumerate(self.kpts):
+        for kpt in self.list_kpts:
             area_sum += kpt.cntr_area
         self.avrg_area = area_sum / counter
 
+    def get_sqnc_name(self):
+        return 'sequence_{}'.format(self.sqnc_id)
+
+    def get_code_and_kpt_ids(self):
+        code = []
+        kpt_ids = []
+        for kpt in self.list_kpts:
+            code.append(kpt.label)
+            kpt_ids.append(kpt.kpt_id)
+        return code, kpt_ids
+
+
+class Pattern:
+
+    def __init__(self, list_sqnc):
+        self.list_sqnc = list_sqnc
 
 
 def draw_contours(im, contours, color):
@@ -272,7 +285,7 @@ def get_connected_components(mask_marker_fg, min_n_keypoints):
     for cntr in contours:
         centre_u, centre_v = calculate_contour_centre(cntr)
         kpt = Keypoint(centre_u, centre_v)
-        kpt.add_contour(cntr)
+        kpt.set_contour(cntr)
         cnnctd_cmp_list.append(kpt)
 
     return cnnctd_cmp_list

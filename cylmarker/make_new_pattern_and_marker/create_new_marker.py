@@ -5,7 +5,7 @@ import math
 import svgwrite
 
 
-def draw_dash_and_dot(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, feature_color, kpt_id):
+def draw_dash_and_dot(new_marker, kpt, u, v, feature_size_u_half, feature_size_v_half, feature_color):
     """  a_b
          | |
          |x|   x = (u, v)
@@ -26,20 +26,20 @@ def draw_dash_and_dot(new_marker, u, v, feature_size_u_half, feature_size_v_half
     f = [u + feature_size_u_half, v - feature_size_u_half]
     g = [u + feature_size_u_half, v + feature_size_u_half]
     h = [u - feature_size_u_half, v + feature_size_u_half]
-    if val_bool:
+    if kpt.label == 1:
         """ Rectangle """
         points = [a, b, c, d, a]
-    else:
+    elif kpt.label == 0:
         """ Square """
         points = [e, f, g, h, e]
-
+    # Draw
     new_marker.add(new_marker.polygon(points=points,
         stroke='none',
         fill=feature_color)
     )
 
-    kpt = keypoints.Keypoint(u, v, val_bool, kpt_id)
-    kpt.add_corner_pts_uv(points[:-1]) # Exclude last point, which repeats
+    kpt.set_centre_uv(u, v)
+    kpt.set_corner_pts_uv(points[:-1]) # Exclude last point, which repeats
 
     return new_marker, kpt
 
@@ -58,7 +58,7 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
     # There will be one feature per every value `x` of a sequence.
     pttrn_size = config_file_data['new_pattern']['pattern_size']
     n_sequences = pttrn_size['n_sequences']
-    n_features = pttrn_size['sequence_length']
+    n_keypoints = pttrn_size['sequence_length']
     # Get feature size and its margins
     feature_size = marker_data['feature_size_pixels']
     feature_size_u = feature_size['horizontal']
@@ -91,7 +91,7 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
         ------
     """
     marker_margin_v_total = 2 * marker_margin_v # since we add the margin on top and bottom
-    marker_height = marker_margin_v_total + n_features * feature_size_v + (n_features - 1) * feature_margin_v
+    marker_height = marker_margin_v_total + n_keypoints * feature_size_v + (n_keypoints - 1) * feature_margin_v
     use_hex_dist = marker_data['use_hexagonal_distribution']
     if use_hex_dist:
         """   non hex.    vs.    hex
@@ -124,53 +124,37 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
         new_marker.add(new_marker.line((0, top), (marker_width, top), stroke_width=thck, stroke=black))
         new_marker.add(new_marker.line((0, bot), (marker_width, bot), stroke_width=thck, stroke=black))
 
-    u_v = []
-    x_y_z = []
     # Get cylinder's radius and mm per pixel
     radius, mm_per_pixel = load_data.get_marker_radius_and_mmperpixel(config_file_data, marker_width)
 
-    # Paint features
+    # Paint keypoints
     """
       To centre the pattern in the u direction I will add `feature_margin_u_half` to the first sequence.
       This way instead of getting this (see below), we get this (see below):
                                  |x    x    x    |        |  x    x    x  |
                                  |x    x    x    |        |  x    x    x  |
                                  |x    x    x    |        |  x    x    x  |
-             margin_horizontal:  (0)          (4)          (2)          (2)
+                 margin spaces:  (0)         (4)           (2)          (2)
     """
     feature_margin_u_half = feature_margin_u / 2.0
     init_u = feature_size_u_half + feature_margin_u_half
     delta_u = feature_size_u + feature_margin_u
     init_v = marker_margin_v + feature_size_v_half
     delta_v = feature_size_v + feature_margin_v
-    kpt_id = 0
-    kpts = []
-    for i, sequence in enumerate(new_pttrn):
-        tmp_u_v = []
-        tmp_x_y_z = []
+
+    # Draw marker keypoints according to the `new_pttrn`
+    for i, sqnc in enumerate(new_pttrn.list_sqnc):
         u = init_u + i * delta_u
         shift_v = 0
-        # in the hexagonal we want to align with the centre of the gap between features
+        # in the hexagonal we want to align with the centre of the gap between keypoints
         if use_hex_dist and i % 2 == 1:
             shift_v = hexagonal_shift_v
-        for j, val_bool in enumerate(sequence):
+        for j, kpt in enumerate(sqnc.list_kpts):
             v = init_v + shift_v +  j * delta_v
-            new_marker, kpt = draw_dash_and_dot(new_marker, u, v, feature_size_u_half, feature_size_v_half, val_bool, black, kpt_id)
-            kpt.calculate_xyz_centre_and_corners(radius, mm_per_pixel, marker_width)
-            kpts.append(kpt)
-            kpt_id += 1
+            new_marker, kpt = draw_dash_and_dot(new_marker, kpt, u, v, feature_size_u_half, feature_size_v_half, black)
+            kpt.set_xyz_of_centre_and_corners(radius, mm_per_pixel, marker_width)
 
-            tmp_u_v.append([u, v])
-            x = v * mm_per_pixel
-            alpha = math.radians((u/marker_width) * 360.0)
-            y = radius * math.sin(alpha)
-            z = radius * math.cos(alpha)
-            tmp_x_y_z.append([x, y, z])
-        u_v.append(tmp_u_v)
-        x_y_z.append(tmp_x_y_z)
-
-    # Draw marker features according to the `new_pttrn`
-    return new_marker, u_v, x_y_z, kpts
+    return new_marker, new_pttrn
 
 
 
