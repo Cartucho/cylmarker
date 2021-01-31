@@ -56,6 +56,8 @@ class Keypoint:
 
 class Sequence:
 
+    SQNC_NAME_HEAD = 'sequence_'
+
     def __init__(self, list_kpts, sqnc_id=-1):
         self.list_kpts = list_kpts
         self.sqnc_id = sqnc_id
@@ -67,7 +69,7 @@ class Sequence:
         self.avrg_area = area_sum / counter
 
     def get_sqnc_name(self):
-        return 'sequence_{}'.format(self.sqnc_id)
+        return '{}{}'.format(self.SQNC_NAME_HEAD, self.sqnc_id)
 
     def get_code_and_kpt_ids(self):
         code = []
@@ -95,7 +97,7 @@ def find_angles_with_other_keypoints(kpt_anchor, kpts_list, max_ang_diff):
     angles = []
     angles_kpts = []
     for kpt in kpts_list: # TODO: could be done in parallel
-        if kpt is not kpt_anchor:
+        if kpt is not kpt_anchor and not kpt.used:
             u, v = kpt.get_centre_uv()
             """
               -----> (u)
@@ -252,7 +254,8 @@ def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length):
                     kpt.used = True
                     used_kpts_counter += 1
                 sqnc_list.append(sqnc)
-    return sqnc_list
+    pttrn = Pattern(sqnc_list)
+    return pttrn
 
 
 def filter_contours_by_min_area(contours, min_contour_area):
@@ -295,19 +298,18 @@ def get_connected_components(mask_marker_fg, min_n_keypoints):
     return cnnctd_cmp_list
 
 
-def identify_sequence_and_keypoints(sqnc_list, data_pttrn, sequence_length):
+def identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length):
     # TODO: Keep track of the ones that were already matched
     # Label keypoints as False or True
-    for sqnc in sqnc_list:
+    for sqnc in pttrn.list_sqnc:
         sqnc.calculate_avrg_area()
         sqnc_code = []
         for kpt in sqnc.list_kpts:
             if kpt.cntr_area < sqnc.avrg_area:
-                kpt.label = False
+                kpt.label = 0
             else:
-                kpt.label = True
+                kpt.label = 1
             sqnc_code.append(kpt.label)
-        print(sqnc_code)
         #sqnc.sqnc_code = sqnc_code
         # Identify sequence
         #for sqnc_id in 
@@ -321,9 +323,9 @@ def find_keypoints(mask_marker_fg, min_n_keypoints, max_ang_diff, sequence_lengt
     if not cnnctd_cmp_list:
         return None # Not enough connected components detected
     # Group the connected components in sequences
-    sqnc_list = group_keypoint_in_sequences(cnnctd_cmp_list, max_ang_diff, sequence_length)
+    pttrn = group_keypoint_in_sequences(cnnctd_cmp_list, max_ang_diff, sequence_length)
     # Identify keypoints
-    identify_sequence_and_keypoints(sqnc_list, data_pttrn, sequence_length)
+    identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length)
     print(data_pttrn)
     exit()
     return sqnc_list

@@ -13,7 +13,7 @@ def check_image(im, im_path):
 
 def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
     # Load data needed to estimate pose
-    sequence_length = len(data_pttrn['sequence_0'])
+    sequence_length = len(data_pttrn['sequence_0']['code']) # TODO: hardcoded
     min_n_keypoints = config_file_data['min_detected_lines'] * sequence_length
     max_ang_diff = config_file_data['max_angle_diff']
     # Go through each image and estimate pose
