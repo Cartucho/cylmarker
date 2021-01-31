@@ -19,6 +19,9 @@ class Keypoint:
         self.centre_u = centre_u
         self.centre_v = centre_v
 
+    def get_centre_uv(self):
+        return self.centre_u, self.centre_v
+
     def get_centre_info(self):
         return [self.centre_u, self.centre_v], self.xyz_centre
 
@@ -59,7 +62,7 @@ class Sequence:
 
     def calculate_avrg_area(self):
         area_sum = 0.0
-        for kpt in self.list_kpts:
+        for counter, kpt in enumerate(self.list_kpts):
             area_sum += kpt.cntr_area
         self.avrg_area = area_sum / counter
 
@@ -88,12 +91,12 @@ def draw_contours(im, contours, color):
 
 
 def find_angles_with_other_keypoints(kpt_anchor, kpts_list, max_ang_diff):
-    anchor_u, anchor_v = kpt_anchor.get_centre()
+    anchor_u, anchor_v = kpt_anchor.get_centre_uv()
     angles = []
     angles_kpts = []
     for kpt in kpts_list: # TODO: could be done in parallel
         if kpt is not kpt_anchor:
-            u, v = kpt.get_centre()
+            u, v = kpt.get_centre_uv()
             """
               -----> (u)
               |    90*
@@ -245,7 +248,7 @@ def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length):
             sqnc = find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length - 1) # - 1 since we are not including the anchor
             if sqnc is not None:
                 # Flag those keypoints as used
-                for kpt in sqnc.kpts:
+                for kpt in sqnc.list_kpts:
                     kpt.used = True
                     used_kpts_counter += 1
                 sqnc_list.append(sqnc)
@@ -284,7 +287,8 @@ def get_connected_components(mask_marker_fg, min_n_keypoints):
 
     for cntr in contours:
         centre_u, centre_v = calculate_contour_centre(cntr)
-        kpt = Keypoint(centre_u, centre_v)
+        kpt = Keypoint()
+        kpt.set_centre_uv(centre_u, centre_v)
         kpt.set_contour(cntr)
         cnnctd_cmp_list.append(kpt)
 
@@ -297,7 +301,7 @@ def identify_sequence_and_keypoints(sqnc_list, data_pttrn, sequence_length):
     for sqnc in sqnc_list:
         sqnc.calculate_avrg_area()
         sqnc_code = []
-        for kpt in sqnc.kpts:
+        for kpt in sqnc.list_kpts:
             if kpt.cntr_area < sqnc.avrg_area:
                 kpt.label = False
             else:
