@@ -6,6 +6,7 @@ import yaml
 from natsort import natsorted
 
 
+# TODO: this should be loaded from the config file
 FILE_NAME_CONFIG = 'config.yaml'
 FILE_NAME_CAM_CALIB = 'camera_calibration.yaml'
 FILE_NAME_PATTERN = 'pattern.yaml'

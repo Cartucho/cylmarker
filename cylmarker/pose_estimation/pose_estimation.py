@@ -18,7 +18,10 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
     ## Load pattern data
     sequence_length = len(data_pttrn['sequence_0']['code']) # TODO: hardcoded
     ## Load camera matrix and distortion coefficients
-    # TODO:
+    cam_matrix = cam_calib_data['camera_matrix']['data']
+    cam_matrix = np.reshape(cam_matrix, (3, 3))
+    dist_coeff = cam_calib_data['dist_coeff']['data']
+    dist_coeff = np.array(dist_coeff)
     # Go through each image and estimate pose
     img_paths = load_data.load_img_paths(config_file_data)
     for im_path in img_paths:
@@ -31,4 +34,6 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
         # Estimate pose
         if pttrn is not None:
             pnts_3d_object, pnts_2d_image = pttrn.get_data_for_pnp_solver()
+            # cv2.SOLVEPNP_EPNP is faster than ITERATIVE
+            retval, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_EPNP)
             # TODO: Validate solution
