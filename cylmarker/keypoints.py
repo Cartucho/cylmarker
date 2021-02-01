@@ -364,8 +364,8 @@ def identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length, min_dete
 
     if len(used_ind) < min_detected_lines:
         return None
-
     return pttrn
+
 
 def find_keypoints(mask_marker_fg, min_detected_lines, max_ang_diff, sequence_length, data_pttrn, data_marker):
     min_n_keypoints = min_detected_lines * sequence_length
@@ -378,7 +378,8 @@ def find_keypoints(mask_marker_fg, min_detected_lines, max_ang_diff, sequence_le
         return None # Not enough lines detected
     # Identify keypoints
     pttrn = identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length, min_detected_lines, data_marker)
-    exit()
     if pttrn is None:
         return None # Not enough lines identified
-    return sqnc_list
+    # TODO: Remove outlier sequences
+    # Check if those sequences can be seen simultaneously by the camera
+    return pttrn
