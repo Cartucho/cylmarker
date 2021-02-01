@@ -29,5 +29,6 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
         # Find keypoints
         pttrn = keypoints.find_keypoints(mask_marker_fg, min_detected_lines, max_ang_diff, sequence_length, data_pttrn, data_marker)
         # Estimate pose
-        # TODO: pnts_3d_object, pnts_2d_image = pttrn.get_data_for_pnp_solver()
-        # TODO: Validate solution
+        if pttrn is not None:
+            pnts_3d_object, pnts_2d_image = pttrn.get_data_for_pnp_solver()
+            # TODO: Validate solution

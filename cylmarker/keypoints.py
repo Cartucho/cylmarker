@@ -113,6 +113,20 @@ class Pattern:
     def __init__(self, list_sqnc):
         self.list_sqnc = list_sqnc
 
+    def get_data_for_pnp_solver(self):
+        pnts_3d_object = []
+        pnts_2d_image = []
+        for sqnc in self.list_sqnc:
+            if sqnc.sqnc_id != -1:
+                for kpt in sqnc.list_kpts:
+                    uv_centre, xyz_centre = kpt.get_centre_info()
+                    pnts_3d_object.append([[xyz_centre[0]], [xyz_centre[1]], [xyz_centre[2]]])
+                    pnts_2d_image.append([[uv_centre[0]], [uv_centre[1]]])
+        pnts_3d_object = np.asarray(pnts_3d_object, dtype=np.float)
+        pnts_2d_image = np.asarray(pnts_2d_image, dtype=np.float)
+        return pnts_3d_object, pnts_2d_image
+
+
 
 def draw_contours(im, contours, color):
     for cntr in contours:
@@ -380,6 +394,6 @@ def find_keypoints(mask_marker_fg, min_detected_lines, max_ang_diff, sequence_le
     pttrn = identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length, min_detected_lines, data_marker)
     if pttrn is None:
         return None # Not enough lines identified
-    # TODO: Remove outlier sequences
+    # TODO: Remove outlier sequences (check sqnc.sqnc_id == -1)
     # Check if those sequences can be seen simultaneously by the camera
     return pttrn
