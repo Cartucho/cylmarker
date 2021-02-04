@@ -3,6 +3,7 @@ data/marker.svg
 data/pattern.yaml
 data/marker.yaml
 simulation/
+validation/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

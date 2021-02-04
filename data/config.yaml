@@ -35,12 +35,13 @@ new_marker:
 ## background
 marker_bg_hue: 60 # 60 = green color
 marker_bg_hue_margin: 30 # should be smaller than 90, since in OpenCV the range is from 0 to 180
-marker_bg_s_min: 100 # s between 0 and 255
+marker_bg_s_min: 80 # s between 0 and 255
 marker_bg_s_max: 255
-marker_bg_v_min: 30 # v between 0 and 255
+marker_bg_v_min: 64 # (90 = 25%) v between 0 and 255
 marker_bg_v_max: 255
 ## foreground
 marker_fg_s_min: 0 # s between 0 and 255
-marker_fg_s_max: 230
+#marker_fg_s_min: 185 # s between 0 and 255
+marker_fg_s_max: 255
 marker_fg_v_min: 0 # v between 0 and 255
-marker_fg_v_max: 120 # (it's the red of the hsv image)
+marker_fg_v_max: 50 #130
