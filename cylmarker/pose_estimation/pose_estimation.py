@@ -1,5 +1,5 @@
 from cylmarker import load_data, keypoints
-from cylmarker.pose_estimation import img_segmentation
+from cylmarker.pose_estimation import img_segmentation, validate_solution
 
 import cv2 as cv
 import numpy as np
@@ -11,7 +11,7 @@ def check_image(im, im_path):
         exit()
 
 
-def draw_sgmntd_bg_and_fg(im, mask_marker_bg, mask_marker_fg):
+def show_sgmntd_bg_and_fg(im, mask_marker_bg, mask_marker_fg):
     im_copy = im.copy()
     alpha = 0.4
     # First we show the background part only
@@ -28,7 +28,7 @@ def draw_sgmntd_bg_and_fg(im, mask_marker_bg, mask_marker_fg):
     cv.waitKey(0)
 
 
-def draw_contours_and_lines(im, pttrn):
+def show_contours_and_lines(im, pttrn):
     blue = (255, 0, 0)
     green = (0, 255, 0)
     for sqnc in pttrn.list_sqnc:
@@ -45,7 +45,7 @@ def draw_contours_and_lines(im, pttrn):
     cv.waitKey(0)
 
 
-def draw_axis(im, rvecs, tvecs, cam_matrix, dist_coeff):
+def show_axis(im, rvecs, tvecs, cam_matrix, dist_coeff):
     #print(cam_matrix)
     #print(np.transpose(tvecs))
     axis = np.float32([[0, 0, 0], [3,0,0], [0,3,0], [0,0,3]]).reshape(-1,3)
@@ -78,19 +78,21 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
     for im_path in img_paths:
         im = cv.imread(im_path, cv.IMREAD_COLOR)
         check_image(im, im_path) # check if image was sucessfully read
-        # Segment the marker
+        """ 1. Segment the marker """
         mask_marker_bg, mask_marker_fg = img_segmentation.marker_segmentation(im, config_file_data)
         # Draw segmented background and foreground
-        draw_sgmntd_bg_and_fg(im, mask_marker_bg, mask_marker_fg)
-        # Find keypoints
+        show_sgmntd_bg_and_fg(im, mask_marker_bg, mask_marker_fg)
+        """ 2. Find keypoints """
         pttrn = keypoints.find_keypoints(im, mask_marker_fg, min_detected_lines, max_ang_diff_group, max_ang_diff_label, sequence_length, data_pttrn, data_marker)
         # Estimate pose
         if pttrn is not None:
             # Draw contours and lines (for visualization)
-            draw_contours_and_lines(im, pttrn)
+            #show_contours_and_lines(im, pttrn)
             pnts_3d_object, pnts_2d_image = pttrn.get_data_for_pnp_solver()
-            # Estomate pose using the PnPRansac (cv.SOLVEPNP_EPNP is faster than cv.ITERATIVE)
+            """ 3. Estimate pose using the PnPRansac """
+            #(cv.SOLVEPNP_EPNP is faster than cv.ITERATIVE)
             retval, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_EPNP)
             # Draw axis
-            draw_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
-            # TODO: Validate solution
+            #show_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
+            """ 4. Validate solution """
+            validate_solution.validate_pose()
