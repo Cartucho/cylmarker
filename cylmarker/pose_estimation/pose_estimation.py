@@ -92,7 +92,10 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
             """ 3. Estimate pose using the PnPRansac """
             #(cv.SOLVEPNP_EPNP is faster than cv.ITERATIVE)
             retval, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_EPNP)
+            rmat_pred, _ = cv.Rodrigues(rvec_pred)
+            transf_marker_to_cam = np.concatenate((rmat_pred, tvec_pred), axis = 1)
             # Draw axis
             #show_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
             """ 4. Validate solution """
-            validate_solution.validate_pose()
+            passed = validate_solution.validate_pose(pttrn, im, transf_marker_to_cam, cam_matrix)
+            print(passed)
