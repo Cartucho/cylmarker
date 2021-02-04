@@ -83,8 +83,8 @@ class Sequence:
         else:
             self.sqnc_id = sqnc_id
 
-    def set_ang_median(self, ang_median):
-        self.ang_median = ang_median
+    def set_angl_median(self, angl_median):
+        self.angl_median = angl_median
 
     def calculate_avrg_area(self):
         area_sum = 0.0
@@ -113,7 +113,8 @@ class Sequence:
             data_marker_kpt = data_marker[kpt.kpt_id]
             kpt.set_xyz_of_centre_and_corners(data_marker_kpt)
 
-    def label_keypoints(self):
+    def label_keypoints(self, max_ang_diff_label):
+        """
         # Label by area
         self.calculate_avrg_area()
         for kpt in self.list_kpts:
@@ -121,6 +122,23 @@ class Sequence:
                 kpt.label = 0
             else:
                 kpt.label = 1
+        """
+        for kpt in self.list_kpts:
+            if kpt.label == -1:
+                kpt_angle_rads = kpt.cntr_angle_rads
+                kpt_angle = math.degrees(kpt_angle_rads % (2 * math.pi)) # get angle between [0 and 360[
+                if kpt_angle >= 180.0:
+                    kpt_angle -= 180.0
+                kpt.label = 0
+                if (180.0 - self.angl_median) < max_ang_diff_label:
+                    if kpt_angle < max_ang_diff_label:
+                        kpt_angle += 180.0
+                elif self.angl_median < max_ang_diff_label:
+                    if kpt_angle > 180.0 - max_ang_diff_label:
+                        kpt_angle -= 180.0
+                # Make comparison
+                if abs(kpt_angle - self.angl_median) < max_ang_diff_label:
+                    kpt.label = 1
 
 class Pattern:
 
@@ -208,8 +226,8 @@ def find_angles_with_other_keypoints(kpt_anchor, kpts_list, max_ang_diff):
 
               Adding an additional point is ok since we will sort the angles, and consequently
               only one of them will be assigned to the forming sequence of keypoints.
-              In other words, since 1* and 181* is so different (> MAX_ANGLE_DIFF) when we assign
-              a group only either _1 or _2 will be used:
+              In other words, since 1* and 181* is so different (> `max_ang_diff_group`) when
+              we assign a group only either _1 or _2 will be used:
 
               Example:
               Imagine this sorted group of angles, see how they end up in very distinct positions:
@@ -229,13 +247,13 @@ def find_angles_with_other_keypoints(kpt_anchor, kpts_list, max_ang_diff):
     return angles[angles_argsort], angles_kpts[angles_argsort]
 
 
-def sort_kpts_by_dist_to_anchor(sqnc_kpts, ang_median, kpt_anchor):
-    ang_median = 180.0 - ang_median
-    ang_median_rad = math.radians(ang_median)
+def sort_kpts_by_dist_to_anchor(sqnc_kpts, angl_median, kpt_anchor):
+    angl_median = 180.0 - angl_median
+    angl_median_rad = math.radians(angl_median)
 
     dist_anchor = [] # store distances to anchor point
     for kpt in sqnc_kpts:
-        u_new = - kpt.anchor_du * math.cos(ang_median_rad) + kpt.anchor_dv * math.sin(ang_median_rad)
+        u_new = - kpt.anchor_du * math.cos(angl_median_rad) + kpt.anchor_dv * math.sin(angl_median_rad)
         dist_anchor.append(u_new)
 
     # Add anchor point too
@@ -281,11 +299,11 @@ def find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length
         if (angles[ind_tail] - angles[ind_head]) < max_ang_diff:
             # Sequence found!
             sqnc_kpts = angles_kpts[ind_head:ind_tail + 1] # + 1 since exclusive
-            ang_median = np.median(angles[ind_head:ind_tail + 1]) # + 1 since exclusive
-            sqnc_kpts = sort_kpts_by_dist_to_anchor(sqnc_kpts, ang_median, kpt_anchor)
+            angl_median = np.median(angles[ind_head:ind_tail + 1]) # + 1 since exclusive
+            sqnc_kpts = sort_kpts_by_dist_to_anchor(sqnc_kpts, angl_median, kpt_anchor)
             # Create sequence object
             sqnc = Sequence(sqnc_kpts)
-            sqnc.set_ang_median(ang_median)
+            sqnc.set_angl_median(angl_median)
             break
 
     return sqnc
@@ -392,10 +410,10 @@ def find_code_match(im, sqnc, data_pttrn, name_code, name_kpt_ids, used_ind):
     return sqnc, None, used_ind
 
 
-def identify_sequence_and_keypoints(im, pttrn, data_pttrn, sequence_length, min_detected_lines, data_marker):
+def identify_sequence_and_keypoints(im, pttrn, max_ang_diff_label, data_pttrn, sequence_length, min_detected_lines, data_marker):
     # Label keypoints as 0 or 1
     for sqnc in pttrn.list_sqnc:
-        sqnc.label_keypoints()
+        sqnc.label_keypoints(max_ang_diff_label)
 
     # Identify keypoints
     used_ind = [] # keep track of the sequences that were already found
@@ -409,17 +427,17 @@ def identify_sequence_and_keypoints(im, pttrn, data_pttrn, sequence_length, min_
     return pttrn
 
 
-def find_keypoints(im, mask_marker_fg, min_detected_lines, max_ang_diff, sequence_length, data_pttrn, data_marker):
+def find_keypoints(im, mask_marker_fg, min_detected_lines, max_ang_diff_group, max_ang_diff_label, sequence_length, data_pttrn, data_marker):
     min_n_keypoints = min_detected_lines * sequence_length
     cnnctd_cmp_list = get_connected_components(mask_marker_fg, min_n_keypoints)
     if cnnctd_cmp_list is None:
         return None # Not enough connected components detected
     # Group the connected components in sequences
-    pttrn = group_keypoint_in_sequences(cnnctd_cmp_list, max_ang_diff, sequence_length, min_detected_lines)
+    pttrn = group_keypoint_in_sequences(cnnctd_cmp_list, max_ang_diff_group, sequence_length, min_detected_lines)
     if pttrn is None:
         return None # Not enough lines detected
     # Identify keypoints
-    pttrn = identify_sequence_and_keypoints(im, pttrn, data_pttrn, sequence_length, min_detected_lines, data_marker)
+    pttrn = identify_sequence_and_keypoints(im, pttrn, max_ang_diff_label, data_pttrn, sequence_length, min_detected_lines, data_marker)
     if pttrn is None:
         return None # Not enough lines identified
     # TODO: Remove outlier sequences (check sqnc.sqnc_id == -1)

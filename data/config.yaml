@@ -2,7 +2,8 @@
 img_dir_path: 'data/images'
 img_format: '.png' # keep the dot ('.')!
 min_detected_lines: 3
-max_angle_diff: 2.0 #1.5 # max angular difference (in degrees) between two keypoints in the same sequence
+max_angle_diff_group: 2.0 #1.5 # max angular difference (in degrees) between two keypoints in the same sequence
+max_angle_diff_label: 25.0 # 35.0
 green_bg: true
 cyl_diameter_mm: 8.0
 # if you print the marker, to wrap around a cylinder, we also need to take into account the paper's thickness
