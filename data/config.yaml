@@ -12,8 +12,8 @@ printing_paper_thickness_mm: 0.08 # standard 100 gsm paper
 # Settings for making a new pattern and marker
 new_pattern:
     pattern_size:
-        n_sequences: 15 # number of sequences per pattern (= number of columns)
-        sequence_length: 7 # number of features per sequence (should be > 2)
+        n_sequences: 12 # number of sequences per pattern (= number of columns). Use a EVEN number for hexagonal grid!
+        sequence_length: 6 # number of features per sequence (should be > 2)
     sequence_head: 1 # if starts with `1` then it will end with `0`, and vice-versa
     max_n_random_sequences: 100
     max_n_iterations_to_optimise_pttrn: 1000
@@ -21,13 +21,13 @@ new_marker:
     draw_green_bg: true
     use_hexagonal_distribution: true
     marker_margin_pixels:
-        vertical: 198 # add both on top and bottom
+        vertical: 228 # add both on top and bottom
     feature_size_pixels:
-        vertical: 300
-        horizontal: 100
+        long: 250
+        small: 100
     feature_margin_pixels:
-        vertical: 150
-        horizontal: 100
+        vertical: 280
+        horizontal: 0
     add_border_top_and_bot: true # to be used as a guide for cutting the printed marker
     border_thickness_pixels: 10
 
@@ -35,7 +35,7 @@ new_marker:
 ## background
 marker_bg_hue: 60 # 60 = green color
 marker_bg_hue_margin: 30 # should be smaller than 90, since in OpenCV the range is from 0 to 180
-marker_bg_s_min: 80 # s between 0 and 255
+marker_bg_s_min: 20 #80 # s between 0 and 255 (if the marker has white reflections, then you can lower this number)
 marker_bg_s_max: 255
 marker_bg_v_min: 64 # (90 = 25%) v between 0 and 255
 marker_bg_v_max: 255

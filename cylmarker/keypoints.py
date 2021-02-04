@@ -61,6 +61,9 @@ class Keypoint:
     def set_contour(self, cntr):
         self.cntr = cntr
         self.cntr_area = cv.contourArea(cntr)
+        [du, dv, u, y] = cv.fitLine(cntr, cv.DIST_L2, 0, 0.01, 0.01)
+        angle_rads = math.atan2(dv, du)
+        self.cntr_angle_rads = angle_rads
 
     def set_anchor_du_dv(self, anchor_du, anchor_dv):
         self.anchor_du = anchor_du
@@ -79,6 +82,9 @@ class Sequence:
             self.sqnc_id = self.NAME_SQNC.format(sqnc_id)
         else:
             self.sqnc_id = sqnc_id
+
+    def set_ang_median(self, ang_median):
+        self.ang_median = ang_median
 
     def calculate_avrg_area(self):
         area_sum = 0.0
@@ -107,6 +113,14 @@ class Sequence:
             data_marker_kpt = data_marker[kpt.kpt_id]
             kpt.set_xyz_of_centre_and_corners(data_marker_kpt)
 
+    def label_keypoints(self):
+        # Label by area
+        self.calculate_avrg_area()
+        for kpt in self.list_kpts:
+            if kpt.cntr_area < self.avrg_area:
+                kpt.label = 0
+            else:
+                kpt.label = 1
 
 class Pattern:
 
@@ -271,7 +285,9 @@ def find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length
             sqnc_kpts = sort_kpts_by_dist_to_anchor(sqnc_kpts, ang_median, kpt_anchor)
             # Create sequence object
             sqnc = Sequence(sqnc_kpts)
+            sqnc.set_ang_median(ang_median)
             break
+
     return sqnc
 
 
@@ -291,6 +307,7 @@ def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length, min_de
             angles, angles_kpts = find_angles_with_other_keypoints(kpt_anchor, sqnc_kpts, max_ang_diff)
             sqnc = find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length - 1) # - 1 since we are not including the anchor
             if sqnc is not None:
+                #sqnc = find_line_that_fits_best_to_the_keypoint_centroids(sqnc) TODO
                 # Flag those keypoints as used
                 for kpt in sqnc.list_kpts:
                     kpt.used = True
@@ -378,12 +395,7 @@ def find_code_match(im, sqnc, data_pttrn, name_code, name_kpt_ids, used_ind):
 def identify_sequence_and_keypoints(im, pttrn, data_pttrn, sequence_length, min_detected_lines, data_marker):
     # Label keypoints as 0 or 1
     for sqnc in pttrn.list_sqnc:
-        sqnc.calculate_avrg_area()
-        for kpt in sqnc.list_kpts:
-            if kpt.cntr_area < sqnc.avrg_area:
-                kpt.label = 0
-            else:
-                kpt.label = 1
+        sqnc.label_keypoints()
 
     # Identify keypoints
     used_ind = [] # keep track of the sequences that were already found
