@@ -342,7 +342,23 @@ def get_connected_components(mask_marker_fg, min_n_keypoints):
     return cnnctd_cmp_list
 
 
-def find_code_match(sqnc, data_pttrn, name_code, name_kpt_ids, used_ind):
+def show_labels(im, sqnc):
+    red = (0, 0, 255)
+    for kpt in sqnc.list_kpts:
+        tmp_u, tmp_v = kpt.get_centre_uv()
+        tmp_label = kpt.label
+        im = cv.putText(im,'{}'.format(tmp_label),
+              (int(tmp_u), int(tmp_v)),
+              cv.FONT_HERSHEY_SIMPLEX,
+              0.2,
+              red,
+              1)
+    cv.imshow("Code", im)
+    cv.waitKey(0)
+
+
+def find_code_match(im, sqnc, data_pttrn, name_code, name_kpt_ids, used_ind):
+    show_labels(im, sqnc)
     sqnc_code = sqnc.get_code()
     for ind, name_sqnc in enumerate(data_pttrn):
         if ind not in used_ind:
@@ -359,7 +375,7 @@ def find_code_match(sqnc, data_pttrn, name_code, name_kpt_ids, used_ind):
     return sqnc, None, used_ind
 
 
-def identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length, min_detected_lines, data_marker):
+def identify_sequence_and_keypoints(im, pttrn, data_pttrn, sequence_length, min_detected_lines, data_marker):
     # Label keypoints as 0 or 1
     for sqnc in pttrn.list_sqnc:
         sqnc.calculate_avrg_area()
@@ -372,7 +388,7 @@ def identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length, min_dete
     # Identify keypoints
     used_ind = [] # keep track of the sequences that were already found
     for sqnc in pttrn.list_sqnc:
-        sqnc, kpt_ids, used_ind = find_code_match(sqnc, data_pttrn, sqnc.NAME_CODE, sqnc.NAME_KPT_IDS, used_ind)
+        sqnc, kpt_ids, used_ind = find_code_match(im, sqnc, data_pttrn, sqnc.NAME_CODE, sqnc.NAME_KPT_IDS, used_ind)
         if kpt_ids is not None:
             sqnc.identify_and_copy_kpt_data(kpt_ids, data_marker[sqnc.sqnc_id])
 
@@ -381,7 +397,7 @@ def identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length, min_dete
     return pttrn
 
 
-def find_keypoints(mask_marker_fg, min_detected_lines, max_ang_diff, sequence_length, data_pttrn, data_marker):
+def find_keypoints(im, mask_marker_fg, min_detected_lines, max_ang_diff, sequence_length, data_pttrn, data_marker):
     min_n_keypoints = min_detected_lines * sequence_length
     cnnctd_cmp_list = get_connected_components(mask_marker_fg, min_n_keypoints)
     if cnnctd_cmp_list is None:
@@ -391,7 +407,7 @@ def find_keypoints(mask_marker_fg, min_detected_lines, max_ang_diff, sequence_le
     if pttrn is None:
         return None # Not enough lines detected
     # Identify keypoints
-    pttrn = identify_sequence_and_keypoints(pttrn, data_pttrn, sequence_length, min_detected_lines, data_marker)
+    pttrn = identify_sequence_and_keypoints(im, pttrn, data_pttrn, sequence_length, min_detected_lines, data_marker)
     if pttrn is None:
         return None # Not enough lines identified
     # TODO: Remove outlier sequences (check sqnc.sqnc_id == -1)

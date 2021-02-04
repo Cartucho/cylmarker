@@ -29,7 +29,7 @@ def draw_sgmntd_bg_and_fg(im, mask_marker_bg, mask_marker_fg):
 
 
 def draw_contours_and_lines(im, pttrn):
-    red = (0, 0, 255)
+    blue = (255, 0, 0)
     green = (0, 255, 0)
     for sqnc in pttrn.list_sqnc:
         if sqnc.sqnc_id != -1:
@@ -40,7 +40,7 @@ def draw_contours_and_lines(im, pttrn):
             # draw contours
             for kpt in sqnc.list_kpts:
                 cntr = kpt.cntr
-                cv.drawContours(im, [cntr], -1, red, 1)
+                cv.drawContours(im, [cntr], -1, blue, 1)
     cv.imshow("image", im)
     cv.waitKey(0)
 
@@ -82,7 +82,7 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
         # Draw segmented background and foreground
         draw_sgmntd_bg_and_fg(im, mask_marker_bg, mask_marker_fg)
         # Find keypoints
-        pttrn = keypoints.find_keypoints(mask_marker_fg, min_detected_lines, max_ang_diff, sequence_length, data_pttrn, data_marker)
+        pttrn = keypoints.find_keypoints(im, mask_marker_fg, min_detected_lines, max_ang_diff, sequence_length, data_pttrn, data_marker)
         # Estimate pose
         if pttrn is not None:
             # Draw contours and lines (for visualization)
