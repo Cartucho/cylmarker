@@ -8,6 +8,7 @@ def validate_pose(pttrn, im, transf_marker_to_cam, cam_matrix):
     # Check Intersection over Union (IoU) of each sequence
     im_height, im_width = im.shape[:2]
     passed = True
+
     for sqnc in pttrn.list_sqnc:
         if sqnc.sqnc_id != -1:
             """
@@ -22,7 +23,7 @@ def validate_pose(pttrn, im, transf_marker_to_cam, cam_matrix):
             for kpt in sqnc.list_kpts:
                 cntr = kpt.cntr
                 cv.drawContours(drawing_detected, [cntr], -1, 255, -1)
-            #cv.imshow("contours detected", drawing_detected)
+            cv.imshow("contours detected", drawing_detected)
             # Then, we get the projected contours
             for kpt in sqnc.list_kpts:
                 # For each keypoint we will draw the contour
@@ -39,8 +40,8 @@ def validate_pose(pttrn, im, transf_marker_to_cam, cam_matrix):
                     pts.append([u, v])
                 pts_array = np.asarray(pts, dtype=np.int32)
                 cv.fillPoly(drawing_projected, [pts_array], 255)#, -1)
-            #cv.imshow("contours projected", drawing_projected)
-            #cv.waitKey(0)
+            cv.imshow("contours projected", drawing_projected)
+            cv.waitKey(0)
             intersection = np.logical_and(drawing_projected, drawing_detected)
             union = np.logical_or(drawing_projected, drawing_detected)
             iou_score = np.sum(intersection) / np.sum(union)

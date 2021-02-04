@@ -1,6 +1,7 @@
 import errno
 import os
 import glob
+import math
 
 import yaml
 from natsort import natsorted
@@ -92,7 +93,8 @@ def get_marker_diameter(config_file_data):
 
 
 def get_marker_mm_per_pixel(marker_diameter, marker_width):
-    return marker_diameter/marker_width
+    marker_perimeter = marker_diameter * math.pi
+    return marker_perimeter/marker_width
 
 
 def get_marker_radius_and_mmperpixel(config_file_data, marker_width):

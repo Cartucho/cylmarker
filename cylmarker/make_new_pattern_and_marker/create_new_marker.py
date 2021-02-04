@@ -5,43 +5,53 @@ import math
 import svgwrite
 
 
-def draw_dash_and_dot(new_marker, kpt, u, v, ftr_size_small_half, feature_size_long_half, feature_color):
-    """  a_b
-         | |
-         |x|   x = (u, v)
-         |_|
-         d c
-
-        e_f_g
-        | x |   x = (u, v)
-        j-i-h
+def draw_dash_and_dot(new_marker, kpt, u, v, ftr_size, feature_color):
+    """ Ellipse vertical
+          a
+         / \
+        d x b   x = (u, v)
+         \ /
+          c
     """
-    # Rectangle vertical
-    a = [u - ftr_size_small_half, v - feature_size_long_half]
-    b = [u + ftr_size_small_half, v - feature_size_long_half]
-    c = [u + ftr_size_small_half, v + feature_size_long_half]
-    d = [u - ftr_size_small_half, v + feature_size_long_half]
-    # Rectangle horizontal
-    e = [u - feature_size_long_half, v - ftr_size_small_half]
-    f = [u                         , v - ftr_size_small_half]
-    g = [u + feature_size_long_half, v - ftr_size_small_half]
-    h = [u + feature_size_long_half, v + ftr_size_small_half]
-    i = [u                         , v + ftr_size_small_half]
-    j = [u - feature_size_long_half, v + ftr_size_small_half]
+    ftr_ver = ftr_size['vertical']
+    ftr_ver_half_u = ftr_ver['u'] / 2.0
+    ftr_ver_half_v = ftr_ver['v'] / 2.0
+    a = [u                 , v - ftr_ver_half_v]
+    b = [u + ftr_ver_half_u, v                 ]
+    c = [u                 , v + ftr_ver_half_v]
+    d = [u - ftr_ver_half_u, v                 ]
+    """  Ellipse horizontal
+         _f_
+       e/ . \g   . = (u, v)
+        \___/
+          h
+    """
+    ftr_hor = ftr_size['horizontal']
+    ftr_hor_half_u = ftr_hor['u'] / 2.0
+    ftr_hor_half_v = ftr_hor['v'] / 2.0
+    e = [u - ftr_hor_half_u, v                 ]
+    f = [u                 , v - ftr_hor_half_v]
+    g = [u + ftr_hor_half_u, v                 ]
+    h = [u                 , v + ftr_hor_half_v]
     if kpt.label == 1:
-        """ Rectangle vertical """
-        points = [a, b, c, d, a]
+        """ Ellipse vertical """
+        points = [a, b, c, d]
+        new_marker.add(new_marker.ellipse(center=(u, v),
+            r=(ftr_ver_half_u, ftr_ver_half_v),
+            stroke='none',
+            fill=svgwrite.rgb(0, 0, 0, '%'))
+        )
     elif kpt.label == 0:
         """ Rectangle horizontal """
-        points = [e, f, g, h, i, j, e]
-    # Draw
-    new_marker.add(new_marker.polygon(points=points,
-        stroke='none',
-        fill=feature_color)
-    )
+        points = [e, f, g, h]
+        new_marker.add(new_marker.ellipse(center=(u, v),
+            r=(ftr_hor_half_u, ftr_hor_half_v),
+            stroke='none',
+            fill=svgwrite.rgb(0, 0, 0, '%'))
+        )
 
     kpt.set_centre_uv(u, v)
-    kpt.set_corner_pts_uv(points[:-1]) # Exclude last point, which repeats
+    kpt.set_corner_pts_uv(points)
 
     return new_marker, kpt
 
@@ -62,11 +72,14 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
     n_sequences = pttrn_size['n_sequences']
     n_keypoints = pttrn_size['sequence_length']
     # Get feature size and its margins
-    feature_size = marker_data['feature_size_pixels']
-    ftr_size_small = feature_size['small']
-    feature_size_long = feature_size['long']
-    ftr_size_small_half = ftr_size_small / 2.0
-    feature_size_long_half = feature_size_long / 2.0
+    ftr_size = marker_data['feature_size_pixels']
+    assert(ftr_size['vertical']['v'] > ftr_size['horizontal']['v'])
+    assert(ftr_size['vertical']['u'] < ftr_size['horizontal']['u'])
+    ftr_cell_size_u = ftr_size['horizontal']['u']
+    ftr_cell_size_v = ftr_size['vertical']['v']
+
+    ftr_cell_size_u_half = ftr_cell_size_u / 2.0
+    ftr_cell_size_v_half = ftr_cell_size_v / 2.0
     feature_margin = marker_data['feature_margin_pixels']
 
     # Define colors
@@ -76,8 +89,8 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
 
     # Calculate marker width
     feature_margin_u = feature_margin['horizontal']
-    marker_width = n_sequences * (feature_size_long + feature_margin_u)
-    print(marker_width)
+    marker_width = n_sequences * (ftr_cell_size_u + feature_margin_u)
+    #print(marker_width)
 
     # Calculate marker height
     feature_margin_v = feature_margin['vertical']
@@ -85,16 +98,16 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
     """
         ------
         |       ]margin_v
-        |   x   ]feature_size_long
+        |   x   ]ftr_cell_size_v
         |       ]feature_margin_v
-        |   x   ]feature_size_long
+        |   x   ]ftr_cell_size_v
         |       ]feature_margin_v
-        |   x   ]feature_size_long
+        |   x   ]ftr_cell_size_v
         |       ]margin_v
         ------
     """
     marker_margin_v_total = 2 * marker_margin_v # since we add the margin on top and bottom
-    marker_height = marker_margin_v_total + n_keypoints * feature_size_long + (n_keypoints - 1) * feature_margin_v
+    marker_height = marker_margin_v_total + n_keypoints * ftr_cell_size_v + (n_keypoints - 1) * feature_margin_v
     use_hex_dist = marker_data['use_hexagonal_distribution']
     if use_hex_dist:
         """   non hex.    vs.    hex
@@ -103,10 +116,10 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
           | x  x  x  x  x | x     x    x |
           |               |    x     x   |
 
-            on the hexagonal grid there is a vertical shift = feature_size_long_half + feature_margin_v / 2,
+            on the hexagonal grid there is a vertical shift = ftr_cell_size_v_half + feature_margin_v / 2,
             on the even columns, so that they intercalate.
         """
-        hexagonal_shift_v = feature_size_long_half + feature_margin_v / 2.
+        hexagonal_shift_v = ftr_cell_size_v_half + feature_margin_v / 2.
         marker_height += hexagonal_shift_v
 
     # Get path of where to save the marker
@@ -140,10 +153,10 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
                  margin spaces:  (0)         (4)           (2)          (2)
     """
     feature_margin_u_half = feature_margin_u / 2.0
-    init_u = feature_size_long_half + feature_margin_u_half
-    delta_u = feature_size_long + feature_margin_u
-    init_v = marker_margin_v + feature_size_long_half
-    delta_v = feature_size_long + feature_margin_v
+    init_u = ftr_cell_size_u_half + feature_margin_u_half
+    delta_u = ftr_cell_size_u + feature_margin_u
+    init_v = marker_margin_v + ftr_cell_size_v_half
+    delta_v = ftr_cell_size_v + feature_margin_v
 
     # Draw marker keypoints according to the `new_pttrn`
     for i, sqnc in enumerate(new_pttrn.list_sqnc):
@@ -154,7 +167,7 @@ def draw_marker(data_dir, config_file_data, new_pttrn):
             shift_v = hexagonal_shift_v
         for j, kpt in enumerate(sqnc.list_kpts):
             v = init_v + shift_v +  j * delta_v
-            new_marker, kpt = draw_dash_and_dot(new_marker, kpt, u, v, ftr_size_small_half, feature_size_long_half, black)
+            new_marker, kpt = draw_dash_and_dot(new_marker, kpt, u, v, ftr_size, black)
             kpt.calculate_xyz_of_centre_and_corners(radius, mm_per_pixel, marker_width)
 
     return new_marker, new_pttrn

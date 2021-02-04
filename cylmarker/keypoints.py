@@ -388,12 +388,13 @@ def show_labels(im, sqnc):
               0.2,
               red,
               1)
+        im = cv.circle(im, (int(round(tmp_u)), int(round(tmp_v))), radius=1, color=red)
     cv.imshow("Code", im)
     cv.waitKey(0)
 
 
 def find_code_match(im, sqnc, data_pttrn, name_code, name_kpt_ids, used_ind):
-    #show_labels(im, sqnc)
+    show_labels(im, sqnc)
     sqnc_code = sqnc.get_code()
     for ind, name_sqnc in enumerate(data_pttrn):
         if ind not in used_ind:
