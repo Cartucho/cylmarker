@@ -325,7 +325,7 @@ def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length, min_de
             angles, angles_kpts = find_angles_with_other_keypoints(kpt_anchor, sqnc_kpts, max_ang_diff)
             sqnc = find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length - 1) # - 1 since we are not including the anchor
             if sqnc is not None:
-                #sqnc = find_line_that_fits_best_to_the_keypoint_centroids(sqnc) TODO
+                #sqnc = find_line_that_fits_best_to_the_keypoint_centroids(sqnc) TODO: correct position of centroids, given a RANSAC on line
                 # Flag those keypoints as used
                 for kpt in sqnc.list_kpts:
                     kpt.used = True
@@ -440,6 +440,6 @@ def find_keypoints(im, mask_marker_fg, min_detected_lines, max_ang_diff_group, m
     pttrn = identify_sequence_and_keypoints(im, pttrn, max_ang_diff_label, data_pttrn, sequence_length, min_detected_lines, data_marker)
     if pttrn is None:
         return None # Not enough lines identified
-    # TODO: Remove outlier sequences (check sqnc.sqnc_id == -1)
+    # TODO: Remove outlier sequences (set sqnc.sqnc_id = -1, if it is an outlier)
     # Check if those sequences can be seen simultaneously by the camera
     return pttrn
