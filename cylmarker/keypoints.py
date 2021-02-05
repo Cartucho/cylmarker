@@ -317,7 +317,7 @@ def find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length
     return sqnc
 
 
-def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length, min_detected_lines):
+def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length, min_detected_sqnc):
     # ref: https://www.cs.princeton.edu/courses/archive/spring03/cs226/assignments/lines.html
     n_keypoints = len(sqnc_kpts)
     used_kpts_counter = 0
@@ -340,7 +340,7 @@ def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length, min_de
                     used_kpts_counter += 1
                 if len(sqnc.list_kpts) == sequence_length:
                     sqnc_list.append(sqnc)
-    if len(sqnc_list) < min_detected_lines:
+    if len(sqnc_list) < min_detected_sqnc:
         return None
     pttrn = Pattern(sqnc_list)
     return pttrn
@@ -450,6 +450,7 @@ def find_keypoints(im, mask_marker_fg, min_detected_lines, max_ang_diff_group, m
     pttrn = identify_sequence_and_keypoints(im, pttrn, max_ang_diff_label, data_pttrn, sequence_length, min_detected_lines, data_marker)
     if pttrn is None:
         return None # Not enough lines identified
-    # TODO: Remove outlier sequences (set sqnc.sqnc_id = -1, if it is an outlier)
+    # Remove outlier sequences (set sqnc.sqnc_id = -1, if it is an outlier)
+    #remove_outlier_sequences(pttrn, )
     # Check if those sequences can be seen simultaneously by the camera
     return pttrn

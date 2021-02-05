@@ -91,7 +91,7 @@ def get_best_pattern_from_possible_sequences(pttrn_size, possible_sequences, n_i
                 best_pattern = tmp_pattern
 
     # TODO: The sequences should be sorted to maximize the diff between neighbour sequences.
-    #       Use `min_detected_lines` to define the number of neighbours of each sequence.
+    #       Use `min_detected_sqnc` to define the number of neighbours of each sequence.
 
     return best_pattern
 

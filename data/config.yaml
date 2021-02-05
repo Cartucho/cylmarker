@@ -1,10 +1,11 @@
 # Settings for pose estimation
 img_dir_path: 'data/images'
 img_format: '.png' # keep the dot ('.')!
-min_detected_lines: 3
+min_detected_sqnc: 3
+max_sqnc_seen: 8 # In practice 7 would do
 max_angle_diff_group: 1.5 # max angular difference (in degrees) between two keypoints in the same sequence
 max_angle_diff_label: 35.0
-green_bg: true
+green_bg: true # TODO: code to handle this (for a white marker)
 cyl_diameter_mm: 8.0
 # if you print the marker, to wrap around a cylinder, we also need to take into account the paper's thickness
 printing_paper_thickness_mm: 0.08 # standard 100 gsm paper
