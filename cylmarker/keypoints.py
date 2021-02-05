@@ -437,7 +437,13 @@ def identify_sequence_and_keypoints(im, pttrn, max_ang_diff_label, data_pttrn, s
     return pttrn
 
 
-def find_keypoints(im, mask_marker_fg, min_detected_lines, max_ang_diff_group, max_ang_diff_label, sequence_length, data_pttrn, data_marker):
+def find_keypoints(im, mask_marker_fg, config_file_data, sequence_length, data_pttrn, data_marker):
+    # Load data needed to find sequences of keypoints
+    min_detected_sqnc = config_file_data['min_detected_sqnc']
+    max_detected_sqnc = config_file_data['max_detected_sqnc']
+    max_ang_diff_group = config_file_data['max_angle_diff_group']
+    max_ang_diff_label = config_file_data['max_angle_diff_label']
+
     min_n_keypoints = min_detected_lines * sequence_length
     cnnctd_cmp_list = get_connected_components(mask_marker_fg, min_n_keypoints)
     if cnnctd_cmp_list is None:

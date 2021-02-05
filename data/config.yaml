@@ -2,7 +2,7 @@
 img_dir_path: 'data/images'
 img_format: '.png' # keep the dot ('.')!
 min_detected_sqnc: 3
-max_sqnc_seen: 8 # In practice 7 would do
+max_detected_sqnc: 8 # Half the `n_sequences` in the marker
 max_angle_diff_group: 1.5 # max angular difference (in degrees) between two keypoints in the same sequence
 max_angle_diff_label: 35.0
 green_bg: true # TODO: code to handle this (for a white marker)

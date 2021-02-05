@@ -62,10 +62,6 @@ def show_axis(im, rvecs, tvecs, cam_matrix, dist_coeff):
 
 
 def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
-    # Load data needed to estimate pose
-    min_detected_sqnc = config_file_data['min_detected_sqnc']
-    max_ang_diff_group = config_file_data['max_angle_diff_group']
-    max_ang_diff_label = config_file_data['max_angle_diff_label']
     ## Load pattern data
     sequence_length = len(data_pttrn['sequence_0']['code']) # TODO: hardcoded
     ## Load camera matrix and distortion coefficients
@@ -83,7 +79,7 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
         # Draw segmented background and foreground
         show_sgmntd_bg_and_fg(im, mask_marker_bg, mask_marker_fg)
         """ 2. Find keypoints """
-        pttrn = keypoints.find_keypoints(im, mask_marker_fg, min_detected_sqnc, max_ang_diff_group, max_ang_diff_label, sequence_length, data_pttrn, data_marker)
+        pttrn = keypoints.find_keypoints(im, mask_marker_fg, config_file_data, sequence_length, data_pttrn, data_marker)
         # Estimate pose
         if pttrn is not None:
             # Draw contours and lines (for visualization)
