@@ -420,7 +420,7 @@ def find_code_match(im, sqnc, data_pttrn, name_code, name_kpt_ids, used_ind):
     return sqnc, None, used_ind
 
 
-def identify_sequence_and_keypoints(im, pttrn, max_ang_diff_label, data_pttrn, sequence_length, min_detected_lines, data_marker):
+def identify_sequence_and_keypoints(im, pttrn, max_ang_diff_label, data_pttrn, sequence_length, min_detected_sqnc, data_marker):
     # Label keypoints as 0 or 1
     for sqnc in pttrn.list_sqnc:
         sqnc.label_keypoints(max_ang_diff_label)
@@ -432,7 +432,7 @@ def identify_sequence_and_keypoints(im, pttrn, max_ang_diff_label, data_pttrn, s
         if kpt_ids is not None:
             sqnc.identify_and_copy_kpt_data(kpt_ids, data_marker[sqnc.sqnc_id])
 
-    if len(used_ind) < min_detected_lines:
+    if len(used_ind) < min_detected_sqnc:
         return None
     return pttrn
 
@@ -444,16 +444,16 @@ def find_keypoints(im, mask_marker_fg, config_file_data, sequence_length, data_p
     max_ang_diff_group = config_file_data['max_angle_diff_group']
     max_ang_diff_label = config_file_data['max_angle_diff_label']
 
-    min_n_keypoints = min_detected_lines * sequence_length
+    min_n_keypoints = min_detected_sqnc * sequence_length
     cnnctd_cmp_list = get_connected_components(mask_marker_fg, min_n_keypoints)
     if cnnctd_cmp_list is None:
         return None # Not enough connected components detected
     # Group the connected components in sequences
-    pttrn = group_keypoint_in_sequences(cnnctd_cmp_list, max_ang_diff_group, sequence_length, min_detected_lines)
+    pttrn = group_keypoint_in_sequences(cnnctd_cmp_list, max_ang_diff_group, sequence_length, min_detected_sqnc)
     if pttrn is None:
         return None # Not enough lines detected
     # Identify keypoints
-    pttrn = identify_sequence_and_keypoints(im, pttrn, max_ang_diff_label, data_pttrn, sequence_length, min_detected_lines, data_marker)
+    pttrn = identify_sequence_and_keypoints(im, pttrn, max_ang_diff_label, data_pttrn, sequence_length, min_detected_sqnc, data_marker)
     if pttrn is None:
         return None # Not enough lines identified
     # Remove outlier sequences (set sqnc.sqnc_id = -1, if it is an outlier)
