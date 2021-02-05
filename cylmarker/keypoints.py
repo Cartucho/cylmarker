@@ -1,5 +1,6 @@
 import math
 import copy
+import parse
 
 import cv2 as cv
 import numpy as np
@@ -83,6 +84,12 @@ class Sequence:
         else:
             self.sqnc_id = sqnc_id
 
+    def get_sqnc_id_int(self):
+        if self.sqnc_id == -1:
+            return self.sqnc_id
+        parsed = parse.parse(self.NAME_SQNC, self.sqnc_id)
+        return int(parsed[0])
+
     def set_angl_median(self, angl_median):
         self.angl_median = angl_median
 
@@ -140,10 +147,18 @@ class Sequence:
                 if abs(kpt_angle - self.angl_median) < max_ang_diff_label:
                     kpt.label = 1
 
+
 class Pattern:
 
     def __init__(self, list_sqnc):
         self.list_sqnc = list_sqnc
+
+    def get_identified_sqnc_list(self):
+        list_sqnc_identified = []
+        for sqnc in self.list_sqnc:
+            if sqnc.sqnc_id != -1:
+                list_sqnc_identified.append(sqnc)
+        return list_sqnc_identified
 
     def get_data_for_pnp_solver(self):
         pnts_3d_object = []
@@ -437,7 +452,72 @@ def identify_sequence_and_keypoints(im, pttrn, max_ang_diff_label, data_pttrn, s
     return pttrn
 
 
-def find_keypoints(im, mask_marker_fg, config_file_data, sequence_length, data_pttrn, data_marker):
+def remove_outlier_sequences(pttrn, sqnc_max_ind, min_detected_sqnc, max_detected_sqnc):
+    """
+      Check if those sequences can be seen simultaneously by the camera.
+      If not we will remove the ones that don't make part of the group.
+
+      Imagine that you have the following pattern, with sqnc_max_ind = 9
+      and max_detected_sqnc = 3
+        0  1  2  3  4  5  6  7  8  9
+       |_______|
+          |_______|
+                     ...               0  1
+                            |_______|
+                               |____| |_|
+                                  |_| |____| -> E.g., `sequence_9` could be seen with `sequence_0` or `sequence_1`
+
+      Out of all the ranges (|___|) we will use the one with more inliers,
+      the other sequences will be considered outliers.
+    """
+    list_sqnc_identified = pttrn.get_identified_sqnc_list()
+    n_sqnc_identified = len(list_sqnc_identified)
+    counter_inliers_max = -1
+    ranges_with_more_inliers = None
+    for head in range(sqnc_max_ind + 1):
+        ranges = []
+        tail = head + max_detected_sqnc - 1
+        if tail <= sqnc_max_ind:
+            ranges.append([head, tail])
+        else:
+            tail -= (sqnc_max_ind + 1)
+            ranges.append([head, sqnc_max_ind])
+            ranges.append([0, tail])
+        # count how many of the sequences are inside either of the ranges
+        counter_inliers = 0
+        for sqnc in list_sqnc_identified:
+            sqnc_id = sqnc.get_sqnc_id_int()
+            for (rng_min, rng_max) in ranges:
+                if sqnc_id >= rng_min and sqnc_id <= rng_max:
+                    counter_inliers += 1
+                    break # the inner for loop
+        # if all the detected sqnc are inside either of the ranges, then they are all inliers
+        if n_sqnc_identified == counter_inliers:
+            return pttrn
+        # else, update
+        if counter_inliers > counter_inliers_max:
+            counter_inliers_max = counter_inliers
+            ranges_with_more_inliers = ranges
+
+    # The number of inlier sequences should be between min_detected_sqnc and max_detected_sqnc
+    if counter_inliers_max < min_detected_sqnc or counter_inliers_max > max_detected_sqnc:
+        return None
+
+    # Change the sqnc_id to -1 on the outliers
+    for sqnc in list_sqnc_identified:
+        sqnc_id = get_sqnc_id_int()
+        outlier = True
+        for (rng_min, rng_max) in ranges_with_more_inliers:
+            if sqnc_id >= rng_min and sqnc_id <= rng_max:
+                outlier = False
+                break # the inner for loop
+        if outlier:
+            sqnc.sqnc_id = -1
+
+    return pttrn
+
+
+def find_keypoints(im, mask_marker_fg, config_file_data, sqnc_max_ind, sequence_length, data_pttrn, data_marker):
     # Load data needed to find sequences of keypoints
     min_detected_sqnc = config_file_data['min_detected_sqnc']
     max_detected_sqnc = config_file_data['max_detected_sqnc']
@@ -457,6 +537,5 @@ def find_keypoints(im, mask_marker_fg, config_file_data, sequence_length, data_p
     if pttrn is None:
         return None # Not enough lines identified
     # Remove outlier sequences (set sqnc.sqnc_id = -1, if it is an outlier)
-    #remove_outlier_sequences(pttrn, )
-    # Check if those sequences can be seen simultaneously by the camera
+    pttrn = remove_outlier_sequences(pttrn, sqnc_max_ind, min_detected_sqnc, max_detected_sqnc)
     return pttrn

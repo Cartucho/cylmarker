@@ -4,3 +4,4 @@ opencv-python==4.5.1.48
 svgwrite==1.4.1
 tqdm==4.56.0
 matplotlib==3.3.4
+parse==1.19.0
