@@ -2,8 +2,8 @@
 img_dir_path: 'data/images'
 img_format: '.png' # keep the dot ('.')!
 min_detected_lines: 3
-max_angle_diff_group: 2.0 #1.5 # max angular difference (in degrees) between two keypoints in the same sequence
-max_angle_diff_label: 25.0 # 35.0
+max_angle_diff_group: 1.5 # max angular difference (in degrees) between two keypoints in the same sequence
+max_angle_diff_label: 35.0
 green_bg: true
 cyl_diameter_mm: 8.0
 # if you print the marker, to wrap around a cylinder, we also need to take into account the paper's thickness
@@ -17,7 +17,7 @@ new_pattern:
         sequence_length: 8 # number of features per sequence (should be > 2)
     sequence_head: 1 # if starts with `1` then it will end with `0`, and vice-versa
     max_n_random_sequences: 100
-    max_n_iterations_to_optimise_pttrn: 1000
+    max_n_iterations_to_optimise_pttrn: 10000
 new_marker:
     draw_green_bg: true
     use_hexagonal_distribution: true
@@ -29,10 +29,10 @@ new_marker:
             u: 65
         horizontal:
             v: 93
-            u: 187.5
+            u: 160
     feature_margin_pixels:
         vertical: 125
-        horizontal: 0
+        horizontal: 27.5
     add_border_top_and_bot: true # to be used as a guide for cutting the printed marker
     border_thickness_pixels: 10
 

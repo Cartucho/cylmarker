@@ -297,6 +297,14 @@ def find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length
     for ind_head, ang_head in enumerate(angles[0:ind_head_max + 1]): # + 1 since exclusive
         ind_tail = ind_head + sequence_length - 1
         if (angles[ind_tail] - angles[ind_head]) < max_ang_diff:
+            if ind_head < ind_head_max:
+                # If there are more angles we will check if the next angle also respects
+                # the same condition, if so it means that there are more than n=`sequence_length`
+                # keypoints detected in that line, so we will skip it
+                while ind_tail < ind_head_max:
+                    if (angles[ind_tail + 1] - angles[ind_head]) > max_ang_diff:
+                        break # the while
+                    ind_tail += 1
             # Sequence found!
             sqnc_kpts = angles_kpts[ind_head:ind_tail + 1] # + 1 since exclusive
             angl_median = np.median(angles[ind_head:ind_tail + 1]) # + 1 since exclusive
@@ -330,7 +338,8 @@ def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length, min_de
                 for kpt in sqnc.list_kpts:
                     kpt.used = True
                     used_kpts_counter += 1
-                sqnc_list.append(sqnc)
+                if len(sqnc.list_kpts) == sequence_length:
+                    sqnc_list.append(sqnc)
     if len(sqnc_list) < min_detected_lines:
         return None
     pttrn = Pattern(sqnc_list)
