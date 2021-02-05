@@ -45,7 +45,7 @@ def validate_pose(pttrn, im, transf_marker_to_cam, cam_matrix):
             intersection = np.logical_and(drawing_projected, drawing_detected)
             union = np.logical_or(drawing_projected, drawing_detected)
             iou_score = np.sum(intersection) / np.sum(union)
-            if iou_score < 0.10:
+            if iou_score < 0.15:
                 passed = False
                 break
     return passed
