@@ -361,8 +361,7 @@ def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length, min_de
     return pttrn
 
 
-def filter_contours_by_min_area(contours, min_cntr_area):
-    return [cntr for cntr in contours if cv.contourArea(cntr) >= min_cntr_area]
+
 
 
 def calculate_contour_centre(cntr):
@@ -382,13 +381,12 @@ def calculate_contour_centre(cntr):
     return centre_u, centre_v
 
 
-def get_connected_components(mask_marker_fg, min_n_keypoints, min_cntr_area):
+def get_connected_components(mask_marker_fg, min_n_keypoints):
     # Using connected components as keypoints (later in the code they will be uniquely identified)
     contours, _hierarchy = cv.findContours(mask_marker_fg, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
     n_keypoints_detected = len(contours)
     if n_keypoints_detected < min_n_keypoints:
         return None
-    contours = filter_contours_by_min_area(contours, min_cntr_area)
 
     cnnctd_cmp_list = []
     for cntr in contours:
@@ -521,12 +519,11 @@ def find_keypoints(im, mask_marker_fg, config_file_data, sqnc_max_ind, sequence_
     # Load data needed to find sequences of keypoints
     min_detected_sqnc = config_file_data['min_detected_sqnc']
     max_detected_sqnc = config_file_data['max_detected_sqnc']
-    min_cntr_area = config_file_data['min_cntr_area']
     max_ang_diff_group = config_file_data['max_angle_diff_group']
     max_ang_diff_label = config_file_data['max_angle_diff_label']
 
     min_n_keypoints = min_detected_sqnc * sequence_length
-    cnnctd_cmp_list = get_connected_components(mask_marker_fg, min_n_keypoints, min_cntr_area)
+    cnnctd_cmp_list = get_connected_components(mask_marker_fg, min_n_keypoints)
     if cnnctd_cmp_list is None:
         return None # Not enough connected components detected
     # Group the connected components in sequences

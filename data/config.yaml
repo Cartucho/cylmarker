@@ -3,7 +3,7 @@ img_dir_path: 'data/images'
 img_format: '.png' # keep the dot ('.')!
 min_detected_sqnc: 3
 max_detected_sqnc: 8 # Half the `n_sequences` in the marker
-min_cntr_area: 5
+min_cntr_area_prcntg: 0.03 #% of the marker area (reduce value if smaller keypoints are not being detected)
 max_angle_diff_group: 1.5 # max angular difference (in degrees) between two keypoints in the same sequence
 max_angle_diff_label: 35.0
 green_bg: true # TODO: code to handle this (for a white marker)
@@ -42,8 +42,8 @@ new_marker:
 ## background
 marker_bg_hue: 60 # 60 = green color
 marker_bg_hue_margin: 4 # should be smaller than 90, since in OpenCV the range is from 0 to 180
-marker_bg_s_min: 20 #80 # s between 0 and 255 (if the marker has white reflections, then you can lower this number)
-marker_bg_s_max: 200
+marker_bg_s_min: 15 #80 # s between 0 and 255 (if the marker has white reflections, then you can lower this number)
+marker_bg_s_max: 255 #200 (for real data 200 would be enough)
 marker_bg_v_min: 10 #30 # (90 = 25%) v between 0 and 255 (lower this when the marker is in low light conditions)
 marker_bg_v_max: 255
 ## foreground

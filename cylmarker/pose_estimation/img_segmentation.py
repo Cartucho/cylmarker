@@ -66,22 +66,34 @@ def get_marker_background(im_hsv, config_file_data):
     c = max(contours, key = cv.contourArea)
     mask_marker_bg = np.zeros(mask_bg_colour.shape, np.uint8)
     cv.drawContours(mask_marker_bg, [c], -1, 255, -1)
+    marker_area = cv.contourArea(c)
 
     # Erode mask (given that we already have the biggest green contour)
     kernel = np.ones((3, 3), np.uint8)
     mask_marker_bg = cv.erode(mask_marker_bg, kernel, iterations = 3)
 
-    return mask_marker_bg
+    return mask_marker_bg, marker_area
 
 
-def get_marker_foreground(im_hsv, mask_marker_bg, config_file_data):
+def get_marker_foreground(im_hsv, mask_marker_bg, marker_area, config_file_data):
+    min_cntr_area_prcntg = config_file_data['min_cntr_area_prcntg']
+    min_cntr_area = (min_cntr_area_prcntg / 100.) * marker_area
+    #print(min_cntr_area)
+
     # We will distinguish the foreground and the background using the V channel
     #  the intuition is that the darker parts of the marker should correspond to the keypoints
     th = cv.adaptiveThreshold(im_hsv[:,:,2], 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
                  cv.THRESH_BINARY_INV, 47, 2)
     mask_fg_colour = cv.bitwise_and(th, th, mask=mask_marker_bg)
-    #cv.imshow('test', th)
+    #cv.imshow('test', th) # TODO: there seems to be alway a big contour that I could remove
     #cv.waitKey(0)
+
+    # Filter (remove the ones that are too small)
+    contours, _hierarchy = cv.findContours(mask_fg_colour, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+    for cntr in contours:
+        if cv.contourArea(cntr) < min_cntr_area:
+            mask_fg_colour = cv.drawContours(mask_fg_colour, [cntr], -1, (0, 0, 0), -1)
+
 
     """
     # First, we get the darkest region of the HSV
@@ -163,13 +175,13 @@ def marker_segmentation(im, config_file_data):
     # Segment the marker assuming that it has a unique colour
     im_hsv = cv.cvtColor(im, cv.COLOR_BGR2HSV)
     #show_hsv_image(im_hsv)
-    mask_marker_bg = get_marker_background(im_hsv, config_file_data)
+    mask_marker_bg, marker_area = get_marker_background(im_hsv, config_file_data)
     #marker_bg = cv.bitwise_and(im, im, mask=mask_marker_bg)
     #cv.imshow('marker_bg', marker_bg) # TODO: remove
     marker_bg_hsv = cv.bitwise_and(im_hsv, im_hsv, mask=mask_marker_bg)
     #show_marker_histogram(im_hsv, mask_marker_bg)
     #show_marker_histogram_gray(im, mask_marker_bg)
-    mask_marker_fg = get_marker_foreground(marker_bg_hsv, mask_marker_bg, config_file_data)
+    mask_marker_fg = get_marker_foreground(marker_bg_hsv, mask_marker_bg, marker_area, config_file_data)
 
     return mask_marker_bg, mask_marker_fg
 
