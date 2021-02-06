@@ -7,28 +7,27 @@ def validate_pose(pttrn, im, transf_marker_to_cam, cam_matrix):
     # TODO: Check if sequences are visible by the camera
     # Check Intersection over Union (IoU) of each sequence
     im_height, im_width = im.shape[:2]
-    passed = True
+    error_not_found = True
 
     for sqnc in pttrn.list_sqnc:
-        if sqnc.sqnc_id != -1:
+        if sqnc.sqnc_id != -1 and error_not_found:
             """
                 We will compare the detected and projected contours
                 of each sequence, one-by-one.
                 By going one-by-one we also check if a sequence
                 was mis-identified.
             """
-            drawing_detected = np.zeros((im_height, im_width), np.uint8)
-            drawing_projected = np.zeros((im_height, im_width), np.uint8)
-            # First, we draw the detected contours
+            # First, we draw the detected contour
             for kpt in sqnc.list_kpts:
+                drawing_detected = np.zeros((im_height, im_width), np.uint8)
+                drawing_projected = np.zeros((im_height, im_width), np.uint8)
                 cntr = kpt.cntr
                 cv.drawContours(drawing_detected, [cntr], -1, 255, -1)
-            cv.imshow("contours detected", drawing_detected)
-            # Then, we get the projected contours
-            for kpt in sqnc.list_kpts:
-                # For each keypoint we will draw the contour
+                #cv.imshow("contours detected", drawing_detected)
+                # Then, we get the projected contour
                 pts = []
                 for (x, y, z) in kpt.xyz_corners:
+                    # TODO: I should be using the project points function, because this does not take distortion into account
                     point_3d = np.array([x,
                                          y,
                                          z,
@@ -40,12 +39,12 @@ def validate_pose(pttrn, im, transf_marker_to_cam, cam_matrix):
                     pts.append([u, v])
                 pts_array = np.asarray(pts, dtype=np.int32)
                 cv.fillPoly(drawing_projected, [pts_array], 255)#, -1)
-            cv.imshow("contours projected", drawing_projected)
-            cv.waitKey(0)
-            intersection = np.logical_and(drawing_projected, drawing_detected)
-            union = np.logical_or(drawing_projected, drawing_detected)
-            iou_score = np.sum(intersection) / np.sum(union)
-            if iou_score < 0.15:
-                passed = False
-                break
-    return passed
+                #cv.imshow("contours projected", drawing_projected)
+                #cv.waitKey(0)
+                intersection = np.logical_and(drawing_projected, drawing_detected)
+                union = np.logical_or(drawing_projected, drawing_detected)
+                iou_score = np.sum(intersection) / np.sum(union)
+                if iou_score < 0.10: # TODO: This value should come from the config file!
+                    error_not_found = False
+                    break
+    return error_not_found

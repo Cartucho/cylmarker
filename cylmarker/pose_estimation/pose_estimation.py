@@ -51,7 +51,7 @@ def show_axis(im, rvecs, tvecs, cam_matrix, dist_coeff):
     axis = np.float32([[0, 0, 0], [3,0,0], [0,3,0], [0,0,3]]).reshape(-1,3)
     #print(axis)
     imgpts, jac = cv.projectPoints(axis, rvecs, tvecs, cam_matrix, dist_coeff)
-    print(imgpts)
+    #print(imgpts)
     frame_centre = tuple(imgpts[0].ravel())
     im = cv.line(im, frame_centre, tuple(imgpts[1].ravel()), (255,0,0), 5)
     im = cv.line(im, frame_centre, tuple(imgpts[2].ravel()), (0,255,0), 5)
@@ -75,6 +75,9 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
     for im_path in img_paths:
         im = cv.imread(im_path, cv.IMREAD_COLOR)
         check_image(im, im_path) # check if image was sucessfully read
+        """ 0. Undistort the input image """
+        im = cv.undistort(im, cam_matrix, dist_coeff)
+        dist_coeff = None # we don't need to undistort again
         """ 1. Segment the marker """
         mask_marker_bg, mask_marker_fg = img_segmentation.marker_segmentation(im, config_file_data)
         # Draw segmented background and foreground

@@ -69,7 +69,7 @@ def get_marker_background(im_hsv, config_file_data):
 
     # Erode mask (given that we already have the biggest green contour)
     kernel = np.ones((3, 3), np.uint8)
-    mask_marker_bg = cv.erode(mask_marker_bg, kernel, iterations = 1)
+    mask_marker_bg = cv.erode(mask_marker_bg, kernel, iterations = 3)
 
     return mask_marker_bg
 
@@ -78,7 +78,7 @@ def get_marker_foreground(im_hsv, mask_marker_bg, config_file_data):
     # We will distinguish the foreground and the background using the V channel
     #  the intuition is that the darker parts of the marker should correspond to the keypoints
     th = cv.adaptiveThreshold(im_hsv[:,:,2], 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
-                 cv.THRESH_BINARY_INV, 17, 2)
+                 cv.THRESH_BINARY_INV, 47, 2)
     mask_fg_colour = cv.bitwise_and(th, th, mask=mask_marker_bg)
     #cv.imshow('test', th)
     #cv.waitKey(0)
