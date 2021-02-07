@@ -98,5 +98,5 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
             # Draw axis
             #show_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
             """ 4. Validate solution """
-            passed = validate_solution.validate_pose(pttrn, im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
-            print(passed)
+            passed, avg_score = validate_solution.validate_pose(pttrn, im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
+            print("{} {}".format(passed, avg_score))

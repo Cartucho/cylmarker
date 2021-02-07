@@ -9,6 +9,8 @@ def validate_pose(pttrn, im, rvecs, tvecs, cam_matrix, dist_coeff):
     im_height, im_width = im.shape[:2]
     error_not_found = True
 
+    iou_counter = 0
+    iou_total = 0.0
     for sqnc in pttrn.list_sqnc:
         if sqnc.sqnc_id != -1 and error_not_found:
             """
@@ -17,10 +19,10 @@ def validate_pose(pttrn, im, rvecs, tvecs, cam_matrix, dist_coeff):
                 By going one-by-one we also check if a sequence
                 was mis-identified.
             """
-            # First, we draw the detected contour
             for kpt in sqnc.list_kpts:
                 drawing_detected = np.zeros((im_height, im_width), np.uint8)
                 drawing_projected = np.zeros((im_height, im_width), np.uint8)
+                # First, we draw the detected contour
                 cntr = kpt.cntr
                 drawing_detected = cv.drawContours(drawing_detected, [cntr], -1, 255, -1)
                 #cv.imshow("contours detected", drawing_detected)
@@ -29,12 +31,15 @@ def validate_pose(pttrn, im, rvecs, tvecs, cam_matrix, dist_coeff):
                 imgpts, jac = cv.projectPoints(corners_3d, rvecs, tvecs, cam_matrix, dist_coeff)
                 imgpts = np.asarray(imgpts, dtype=np.int32)
                 drawing_projected = cv.fillPoly(drawing_projected, [imgpts], 255)
-                #print(imgpts)
                 #cv.imshow("contours projected", drawing_projected)
                 #cv.waitKey(0)
+
                 intersection = np.logical_and(drawing_projected, drawing_detected)
                 union = np.logical_or(drawing_projected, drawing_detected)
                 iou_score = np.sum(intersection) / np.sum(union)
                 if iou_score < 0.10: # TODO: This value should come from the config file!
-                    return False
-    return error_not_found
+                    return False, None
+                iou_counter += 1
+                iou_total += iou_score
+    iou_avg = iou_total / iou_counter
+    return error_not_found, iou_avg
