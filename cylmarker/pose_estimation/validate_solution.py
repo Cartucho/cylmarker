@@ -42,4 +42,6 @@ def validate_pose(pttrn, im, rvecs, tvecs, cam_matrix, dist_coeff):
                 iou_counter += 1
                 iou_total += iou_score
     iou_avg = iou_total / iou_counter
+    if iou_avg < 0.5: # TODO: get from config file
+        return False, None
     return error_not_found, iou_avg
