@@ -114,11 +114,10 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
                 passed, avg_score = validate_solution.validate_pose(pttrn, im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
                 print("{} {}".format(passed, avg_score))
                 print(im_path)
-                # Save solution
                 if passed:
+                    # Save solution
                     rmat_pred, _ = cv.Rodrigues(rvec_pred)
                     transf_obj_to_cam = np.concatenate((rmat_pred, tvec_pred), axis = 1)
-                    print(transf_obj_to_cam)
-                    exit()
+                    #print(transf_obj_to_cam)
                     #transf_cam_to_obj = get_transf_cam_to_obj(transf_obj_to_cam)
                     save_pose(im_path, transf_obj_to_cam)
