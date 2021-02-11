@@ -400,6 +400,7 @@ def get_connected_components(mask_marker_fg, min_n_keypoints):
 
 
 def show_labels(im, sqnc):
+    im_copy = im.copy()
     red = (0, 0, 255)
     for kpt in sqnc.list_kpts:
         tmp_u, tmp_v = kpt.get_centre_uv()
@@ -410,8 +411,8 @@ def show_labels(im, sqnc):
               0.2,
               red,
               1)
-        im = cv.circle(im, (int(round(tmp_u)), int(round(tmp_v))), radius=1, color=red)
-    cv.imshow("Code", im)
+        im_copy = cv.circle(im_copy, (int(round(tmp_u)), int(round(tmp_v))), radius=1, color=red)
+    cv.imshow("Code", im_copy)
     cv.waitKey(0)
 
 
