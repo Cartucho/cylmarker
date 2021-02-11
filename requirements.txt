@@ -5,3 +5,4 @@ svgwrite==1.4.1
 tqdm==4.56.0
 matplotlib==3.3.4
 parse==1.19.0
+scikit-spatial==5.2.0

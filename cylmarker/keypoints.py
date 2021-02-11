@@ -4,6 +4,7 @@ import parse
 
 import cv2 as cv
 import numpy as np
+from skspatial.objects import Point, Line
 
 
 class Keypoint:
@@ -332,7 +333,38 @@ def find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length
     return sqnc
 
 
-def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length, min_detected_sqnc):
+def show_centres(im, sqnc, color):
+    for kpt in sqnc.list_kpts:
+        u, v = kpt.get_centre_uv()
+        im = cv.circle(im, (int(round(u)), int(round(v))), radius=1, color=color)
+    cv.imshow("Centres", im)
+    cv.waitKey(0)
+
+
+def fit_line_and_adjust_keypoint_centres(im, sqnc):
+    # ref: https://scikit-spatial.readthedocs.io/en/stable/gallery/projection/plot_point_line.html#sphx-glr-download-gallery-projection-plot-point-line-py
+    im_copy = im.copy()
+    red = (0, 0, 255)
+    green = (0, 255, 0)
+    #show_centres(im_copy, sqnc, red)
+    points = []
+    for kpt in sqnc.list_kpts:
+        u, v = kpt.get_centre_uv()
+        points.append([[u], [v]])
+    points = np.asarray(points, dtype=np.float)
+    vx, vy, x0, y0 = cv.fitLine(points=points, distType=cv.DIST_WELSCH, param=0, reps=0.01, aeps=0.01)
+    #, where (vx, vy) is a normalized vector collinear to the line and (x0, y0) is a point on the line
+    line = Line(point=[x0[0], y0[0]], direction=[vx[0], vy[0]])
+    for kpt in sqnc.list_kpts:
+        u, v = kpt.get_centre_uv()
+        pt = Point([u, v])
+        pt_proj = line.project_point(pt)
+        kpt.set_centre_uv(pt_proj[0], pt_proj[1])
+    #show_centres(im_copy, sqnc, green)
+    return sqnc
+
+
+def group_keypoint_in_sequences(im, sqnc_kpts, max_ang_diff, sequence_length, min_detected_sqnc):
     # ref: https://www.cs.princeton.edu/courses/archive/spring03/cs226/assignments/lines.html
     n_keypoints = len(sqnc_kpts)
     used_kpts_counter = 0
@@ -348,20 +380,17 @@ def group_keypoint_in_sequences(sqnc_kpts, max_ang_diff, sequence_length, min_de
             angles, angles_kpts = find_angles_with_other_keypoints(kpt_anchor, sqnc_kpts, max_ang_diff)
             sqnc = find_sequence(kpt_anchor, angles, angles_kpts, max_ang_diff, sequence_length - 1) # - 1 since we are not including the anchor
             if sqnc is not None:
-                #sqnc = find_line_that_fits_best_to_the_keypoint_centroids(sqnc) TODO: correct position of centroids, given a RANSAC on line
                 # Flag those keypoints as used
                 for kpt in sqnc.list_kpts:
                     kpt.used = True
                     used_kpts_counter += 1
                 if len(sqnc.list_kpts) == sequence_length:
+                    #sqnc = fit_line_and_adjust_keypoint_centres(im, sqnc) # The improvement is almost neglectable
                     sqnc_list.append(sqnc)
     if len(sqnc_list) < min_detected_sqnc:
         return None
     pttrn = Pattern(sqnc_list)
     return pttrn
-
-
-
 
 
 def calculate_contour_centre(cntr):
@@ -528,7 +557,7 @@ def find_keypoints(im, mask_marker_fg, config_file_data, sqnc_max_ind, sequence_
     if cnnctd_cmp_list is None:
         return None # Not enough connected components detected
     # Group the connected components in sequences
-    pttrn = group_keypoint_in_sequences(cnnctd_cmp_list, max_ang_diff_group, sequence_length, min_detected_sqnc)
+    pttrn = group_keypoint_in_sequences(im, cnnctd_cmp_list, max_ang_diff_group, sequence_length, min_detected_sqnc)
     if pttrn is None:
         return None # Not enough lines detected
     # Identify keypoints
