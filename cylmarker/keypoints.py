@@ -405,7 +405,7 @@ def show_labels(im, sqnc):
     for kpt in sqnc.list_kpts:
         tmp_u, tmp_v = kpt.get_centre_uv()
         tmp_label = kpt.label
-        im = cv.putText(im,'{}'.format(tmp_label),
+        im_copy = cv.putText(im_copy,'{}'.format(tmp_label),
               (int(tmp_u), int(tmp_v)),
               cv.FONT_HERSHEY_SIMPLEX,
               0.2,
