@@ -73,7 +73,7 @@ def get_transf_cam_to_obj(transf_obj_to_cam):
 
 def save_pose(im_path, mat):
     filename = '{}.txt'.format(im_path)
-    np.savetxt(filename, (mat), fmt="%f", delimiter=',')
+    np.savetxt(filename, (mat), fmt="%s", delimiter=',')
 
 
 def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
@@ -106,16 +106,19 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
             pnts_3d_object, pnts_2d_image = pttrn.get_data_for_pnp_solver()
             """ 3. Estimate pose using the PnPRansac """
             #(cv.SOLVEPNP_EPNP is faster than cv.ITERATIVE)
-            retval, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_EPNP)
-            # Draw axis
-            #show_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
-            """ 4. Validate solution """
-            passed, avg_score = validate_solution.validate_pose(pttrn, im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
-            print("{} {}".format(passed, avg_score))
-            print(im_path)
-            # Save solution
-            if passed:
-                rmat_pred, _ = cv.Rodrigues(rvec_pred)
-                transf_obj_to_cam = np.concatenate((rmat_pred, tvec_pred), axis = 1)
-                #transf_cam_to_obj = get_transf_cam_to_obj(transf_obj_to_cam)
-                save_pose(im_path, transf_obj_to_cam)
+            valid, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_EPNP)
+            if valid:
+                # Draw axis
+                #show_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
+                """ 4. Validate solution """
+                passed, avg_score = validate_solution.validate_pose(pttrn, im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
+                print("{} {}".format(passed, avg_score))
+                print(im_path)
+                # Save solution
+                if passed:
+                    rmat_pred, _ = cv.Rodrigues(rvec_pred)
+                    transf_obj_to_cam = np.concatenate((rmat_pred, tvec_pred), axis = 1)
+                    print(transf_obj_to_cam)
+                    exit()
+                    #transf_cam_to_obj = get_transf_cam_to_obj(transf_obj_to_cam)
+                    save_pose(im_path, transf_obj_to_cam)
