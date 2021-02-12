@@ -71,6 +71,13 @@ def get_transf_cam_to_obj(transf_obj_to_cam):
     return transf_cam_to_obj
 
 
+def save_pts_info(im_path, pnts_3d_object, pnts_2d_image):
+    filename = '{}.pts3d.txt'.format(im_path)
+    np.savetxt(filename, (np.squeeze(pnts_3d_object)), fmt="%s", delimiter=',')
+    filename = '{}.pts2d.txt'.format(im_path)
+    np.savetxt(filename, (np.squeeze(pnts_2d_image)), fmt="%s", delimiter=',')
+
+
 def save_pose(im_path, mat):
     filename = '{}.txt'.format(im_path)
     np.savetxt(filename, (mat), fmt="%s", delimiter=',')
@@ -104,6 +111,7 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
             # Draw contours and lines (for visualization)
             #show_contours_and_lines(im, pttrn)
             pnts_3d_object, pnts_2d_image = pttrn.get_data_for_pnp_solver()
+            #save_pts_info(im_path, pnts_3d_object, pnts_2d_image)
             """ 3. Estimate pose using the PnPRansac """
             #(cv.SOLVEPNP_EPNP is faster than cv.ITERATIVE)
             valid, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_EPNP)
