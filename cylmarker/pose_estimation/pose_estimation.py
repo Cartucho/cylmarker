@@ -105,16 +105,16 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
     for im_path in img_paths:
         im = cv.imread(im_path, cv.IMREAD_COLOR)
         check_image(im, im_path) # check if image was sucessfully read
-        """ 0. Undistort the input image """
+        """ Step I - Undistort the input image """
         im = cv.undistort(im, cam_matrix, dist_coeff)
         dist_coeff = None # we don't need to undistort again
-        """ 1. Segment the marker """
+        """ Step II - Segment the marker and detect features """
         mask_marker_bg, mask_marker_fg = img_segmentation.marker_segmentation(im, config_file_data)
         if mask_marker_bg is None:
             continue
         # Draw segmented background and foreground
         #show_sgmntd_bg_and_fg(im, mask_marker_bg, mask_marker_fg)
-        """ 2. Find keypoints """
+        """ Step III - Identify features """
         pttrn = keypoints.find_keypoints(im, mask_marker_fg, config_file_data, sqnc_max_ind, sequence_length, data_pttrn, data_marker)
         # Estimate pose
         if pttrn is not None:
@@ -122,8 +122,7 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
             #show_contours_and_lines_and_centroids(im, pttrn)
             pnts_3d_object, pnts_2d_image = pttrn.get_data_for_pnp_solver()
             #save_pts_info(im_path, pnts_3d_object, pnts_2d_image)
-            """ 3. Estimate pose using the PnPRansac """
-            #(cv.SOLVEPNP_EPNP is faster than cv.ITERATIVE)
+            """ Step IV - Estimate the marker's pose """
             valid, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_EPNP)
             if valid:
                 # Draw axis
