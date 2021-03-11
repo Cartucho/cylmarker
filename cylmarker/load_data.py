@@ -65,10 +65,8 @@ def load_pttrn_and_marker_data(data_dir):
     return pttrn_file_data, marker_file_data
 
 
-def load_img_paths(config_file_data):
-    img_dir_path = config_file_data['img_dir_path']
+def load_img_paths(img_dir_path, img_format):
     if is_path_dir(img_dir_path):
-        img_format = config_file_data['img_format']
         img_paths = os.path.join(img_dir_path, '*{}'.format(img_format))
         img_paths_sorted = natsorted(glob.glob(img_paths))
         return img_paths_sorted

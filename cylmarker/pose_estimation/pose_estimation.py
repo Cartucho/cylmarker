@@ -4,7 +4,6 @@ from cylmarker.pose_estimation import img_segmentation, validate_solution
 import cv2 as cv
 import numpy as np
 
-
 def check_image(im, im_path):
     if im is None:
         print('Error opening the image {}'.format(im_path))
@@ -28,37 +27,44 @@ def show_sgmntd_bg_and_fg(im, mask_marker_bg, mask_marker_fg):
     cv.waitKey(0)
 
 
-def show_contours_and_lines(im, pttrn):
+def show_contours_and_lines_and_centroids(im, pttrn):
     blue = (255, 0, 0)
-    green = (0, 255, 0)
+    yellow=(124,225,255)
+    red = (0, 0, 255)
     for sqnc in pttrn.list_sqnc:
         if sqnc.sqnc_id != -1:
-            # draw line between first and last kpt
-            u_0, v_0 = sqnc.list_kpts[0].get_centre_uv()
-            u_1, v_1 = sqnc.list_kpts[-1].get_centre_uv()
-            im = cv.line(im, (int(u_0), int(v_0)), (int(u_1), int(v_1)), green, 1)
-            # draw contours
+            """ draw contours """
             for kpt in sqnc.list_kpts:
                 cntr = kpt.cntr
                 cv.drawContours(im, [cntr], -1, blue, 1)
+            """ draw line between first and last kpt """
+            u_0, v_0 = sqnc.list_kpts[0].get_centre_uv()
+            u_1, v_1 = sqnc.list_kpts[-1].get_centre_uv()
+            im = cv.line(im, (int(u_0), int(v_0)), (int(u_1), int(v_1)), yellow, 2, cv.LINE_AA) # lines
+            """ draw centroids """
+            for kpt in sqnc.list_kpts:
+                u, v = kpt.get_centre_uv()
+                im = cv.circle(im, (int(round(u)), int(round(v))), radius=2, color=red, thickness=-1)
     cv.imshow("image", im)
     cv.waitKey(0)
 
 
-def show_axis(im, rvecs, tvecs, cam_matrix, dist_coeff):
+def show_axis(im, rvecs, tvecs, cam_matrix, dist_coeff, length):
     #print(cam_matrix)
     #print(np.transpose(tvecs))
-    axis = np.float32([[0, 0, 0], [3,0,0], [0,3,0], [0,0,3]]).reshape(-1,3)
+    axis = np.float32([[0, 0, 0], [length,0,0], [0,length,0], [0,0,length]]).reshape(-1,3)
     #print(axis)
     imgpts, jac = cv.projectPoints(axis, rvecs, tvecs, cam_matrix, dist_coeff)
     #print(imgpts)
     frame_centre = tuple(imgpts[0].ravel())
-    im = cv.line(im, frame_centre, tuple(imgpts[1].ravel()), (255,0,0), 5)
-    im = cv.line(im, frame_centre, tuple(imgpts[2].ravel()), (0,255,0), 5)
-    im = cv.line(im, frame_centre, tuple(imgpts[3].ravel()), (0,0,255), 5)
+
+    thickness = 4
+    im = cv.line(im, frame_centre, tuple(imgpts[3].ravel()), (255,0,0), thickness, cv.LINE_AA)
+    im = cv.line(im, frame_centre, tuple(imgpts[2].ravel()), (0,255,0), thickness, cv.LINE_AA)
+    im = cv.line(im, frame_centre, tuple(imgpts[1].ravel()), (0,0,255), thickness, cv.LINE_AA)
+
     cv.imshow("image", im)
     cv.waitKey(0)
-    #exit()
 
 
 def get_transf_cam_to_obj(transf_obj_to_cam):
@@ -93,7 +99,9 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
     dist_coeff = cam_calib_data['dist_coeff']['data']
     dist_coeff = np.array(dist_coeff)
     # Go through each image and estimate pose
-    img_paths = load_data.load_img_paths(config_file_data)
+    img_dir_path = config_file_data['img_dir_path']
+    img_format = config_file_data['img_format']
+    img_paths = load_data.load_img_paths(img_dir_path, img_format)
     for im_path in img_paths:
         im = cv.imread(im_path, cv.IMREAD_COLOR)
         check_image(im, im_path) # check if image was sucessfully read
@@ -102,14 +110,16 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
         dist_coeff = None # we don't need to undistort again
         """ 1. Segment the marker """
         mask_marker_bg, mask_marker_fg = img_segmentation.marker_segmentation(im, config_file_data)
+        if mask_marker_bg is None:
+            continue
         # Draw segmented background and foreground
-        show_sgmntd_bg_and_fg(im, mask_marker_bg, mask_marker_fg)
+        #show_sgmntd_bg_and_fg(im, mask_marker_bg, mask_marker_fg)
         """ 2. Find keypoints """
         pttrn = keypoints.find_keypoints(im, mask_marker_fg, config_file_data, sqnc_max_ind, sequence_length, data_pttrn, data_marker)
         # Estimate pose
         if pttrn is not None:
             # Draw contours and lines (for visualization)
-            #show_contours_and_lines(im, pttrn)
+            #show_contours_and_lines_and_centroids(im, pttrn)
             pnts_3d_object, pnts_2d_image = pttrn.get_data_for_pnp_solver()
             #save_pts_info(im_path, pnts_3d_object, pnts_2d_image)
             """ 3. Estimate pose using the PnPRansac """
@@ -117,15 +127,13 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
             valid, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_EPNP)
             if valid:
                 # Draw axis
-                #show_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
+                show_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff, 6)
                 """ 4. Validate solution """
                 passed, avg_score = validate_solution.validate_pose(pttrn, im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
-                print("{} {}".format(passed, avg_score))
-                print(im_path)
                 if passed:
                     # Save solution
                     rmat_pred, _ = cv.Rodrigues(rvec_pred)
                     transf_obj_to_cam = np.concatenate((rmat_pred, tvec_pred), axis = 1)
                     #print(transf_obj_to_cam)
                     #transf_cam_to_obj = get_transf_cam_to_obj(transf_obj_to_cam)
-                    save_pose(im_path, transf_obj_to_cam)
+                    #save_pose(im_path, transf_obj_to_cam)
