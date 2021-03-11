@@ -67,6 +67,16 @@ class Keypoint:
         angle_rads = math.atan2(dv, du)
         self.cntr_angle_rads = angle_rads
 
+    def calculate_elongation(self):
+        """ ref: https://stackoverflow.com/questions/14854592/retrieve-elongation-feature-in-python-opencv-what-kind-of-moment-it-supposed-to """
+        if self.cntr is not None:
+            m = cv.moments(self.cntr)
+            x = m['mu20'] + m['mu02']
+            y = 4 * m['mu11']**2 + (m['mu20'] - m['mu02'])**2
+            if (x - y**0.5) < 0.0001:
+                self.elong = 0.0 # TODO: maybe I should set to None
+            self.elong = (x + y**0.5) / (x - y**0.5)
+
     def set_anchor_du_dv(self, anchor_du, anchor_dv):
         self.anchor_du = anchor_du
         self.anchor_dv = anchor_dv
@@ -352,7 +362,8 @@ def fit_line_and_adjust_keypoint_centres(im, sqnc):
         u, v = kpt.get_centre_uv()
         points.append([[u], [v]])
     points = np.asarray(points, dtype=np.float)
-    vx, vy, x0, y0 = cv.fitLine(points=points, distType=cv.DIST_WELSCH, param=0, reps=0.01, aeps=0.01)
+    #vx, vy, x0, y0 = cv.fitLine(points=points, distType=cv.DIST_WELSCH, param=0, reps=0.01, aeps=0.01)
+    vx, vy, x0, y0 = cv.fitLine(points=points, distType=cv.DIST_FAIR, param=0, reps=0.01, aeps=0.01)
     #, where (vx, vy) is a normalized vector collinear to the line and (x0, y0) is a point on the line
     line = Line(point=[x0[0], y0[0]], direction=[vx[0], vy[0]])
     for kpt in sqnc.list_kpts:
@@ -533,7 +544,7 @@ def remove_outlier_sequences(pttrn, sqnc_max_ind, min_detected_sqnc, max_detecte
 
     # Change the sqnc_id to -1 on the outliers
     for sqnc in list_sqnc_identified:
-        sqnc_id = get_sqnc_id_int()
+        sqnc_id = sqnc.get_sqnc_id_int()
         outlier = True
         for (rng_min, rng_max) in ranges_with_more_inliers:
             if sqnc_id >= rng_min and sqnc_id <= rng_max:
