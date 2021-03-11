@@ -37,11 +37,11 @@ def validate_pose(pttrn, im, rvecs, tvecs, cam_matrix, dist_coeff):
                 intersection = np.logical_and(drawing_projected, drawing_detected)
                 union = np.logical_or(drawing_projected, drawing_detected)
                 iou_score = np.sum(intersection) / np.sum(union)
-                if iou_score < 0.10: # TODO: This value should come from the config file!
+                if iou_score < 0.2: # TODO: This value should come from the config file!
                     return False, None
                 iou_counter += 1
                 iou_total += iou_score
     iou_avg = iou_total / iou_counter
-    if iou_avg < 0.5: # TODO: get from config file
-        return False, None
+    #if iou_avg < 0.5: # TODO: get from config file
+    #    return False, None
     return error_not_found, iou_avg
