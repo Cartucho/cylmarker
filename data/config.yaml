@@ -44,7 +44,7 @@ marker_bg_hue: 60 # 60 = green color
 marker_bg_hue_margin: 4 # should be smaller than 90, since in OpenCV the range is from 0 to 180
 marker_bg_s_min: 15 #80 # s between 0 and 255 (if the marker has white reflections, then you can lower this number)
 marker_bg_s_max: 255 #200 (for real data 200 would be enough)
-marker_bg_v_min: 10 #30 # (90 = 25%) v between 0 and 255 (lower this when the marker is in low light conditions)
+marker_bg_v_min: 50 #30 # (90 = 25%) v between 0 and 255 (lower this when the marker is in low light conditions)
 marker_bg_v_max: 255
 ## foreground
 marker_fg_s_min: 0 # s between 0 and 255
