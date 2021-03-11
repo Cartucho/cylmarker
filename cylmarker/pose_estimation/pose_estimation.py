@@ -67,14 +67,14 @@ def show_axis(im, rvecs, tvecs, cam_matrix, dist_coeff, length):
     cv.waitKey(0)
 
 
-def get_transf_cam_to_obj(transf_obj_to_cam):
+def get_transf_inv(transf):
     # ref: https://math.stackexchange.com/questions/152462/inverse-of-transformation-matrix
-    r = transf_obj_to_cam[0:3, 0:3]
-    t = transf_obj_to_cam[0:3, 3]
+    r = transf[0:3, 0:3]
+    t = transf[0:3, 3]
     r_inv = np.transpose(r) # Orthogonal matrix so the inverse is its transpose
     t_new = np.matmul(-r_inv, t).reshape(3, 1)
-    transf_cam_to_obj = np.concatenate((r_inv, t_new), axis = 1)
-    return transf_cam_to_obj
+    transf_inv = np.concatenate((r_inv, t_new), axis = 1)
+    return transf_inv
 
 
 def save_pts_info(im_path, pnts_3d_object, pnts_2d_image):
@@ -128,12 +128,7 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
             if valid:
                 # Draw axis
                 show_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff, 6)
-                """ 4. Validate solution """
-                passed, avg_score = validate_solution.validate_pose(pttrn, im, rvec_pred, tvec_pred, cam_matrix, dist_coeff)
-                if passed:
-                    # Save solution
-                    rmat_pred, _ = cv.Rodrigues(rvec_pred)
-                    transf_obj_to_cam = np.concatenate((rmat_pred, tvec_pred), axis = 1)
-                    #print(transf_obj_to_cam)
-                    #transf_cam_to_obj = get_transf_cam_to_obj(transf_obj_to_cam)
-                    #save_pose(im_path, transf_obj_to_cam)
+                # Save solution
+                #rmat_pred, _ = cv.Rodrigues(rvec_pred)
+                #transf = np.concatenate((rmat_pred, tvec_pred), axis = 1)
+                #save_pose(im_path, transf)
