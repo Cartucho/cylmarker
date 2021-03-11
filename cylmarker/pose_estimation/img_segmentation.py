@@ -63,6 +63,8 @@ def get_marker_background(im_hsv, config_file_data):
 
     ## Get largest contour (to avoid returning noise as a potential marker)
     contours, _hierarchy = cv.findContours(mask_bg_colour, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+    if len(contours) == 0: # No marker detected
+        return None, None
     c = max(contours, key = cv.contourArea)
     mask_marker_bg = np.zeros(mask_bg_colour.shape, np.uint8)
     cv.drawContours(mask_marker_bg, [c], -1, 255, -1)
@@ -170,18 +172,27 @@ def show_marker_histogram_gray(im, mask_marker_bg):
     cv.waitKey(0)
 
 
+def show_features(im, mask_marker_fg):
+    marker_fg = cv.bitwise_and(im, im, mask=mask_marker_fg)
+    marker_fg[marker_fg!=0] = 255
+    cv.imshow('features', marker_fg)
+    cv.waitKey(0)
+
+
 def marker_segmentation(im, config_file_data):
     #print(config_file_data)
     # Segment the marker assuming that it has a unique colour
     im_hsv = cv.cvtColor(im, cv.COLOR_BGR2HSV)
     #show_hsv_image(im_hsv)
     mask_marker_bg, marker_area = get_marker_background(im_hsv, config_file_data)
-    #marker_bg = cv.bitwise_and(im, im, mask=mask_marker_bg)
+    if mask_marker_bg is None:
+        return None, None
+    marker_bg = cv.bitwise_and(im, im, mask=mask_marker_bg)
     #cv.imshow('marker_bg', marker_bg) # TODO: remove
     marker_bg_hsv = cv.bitwise_and(im_hsv, im_hsv, mask=mask_marker_bg)
     #show_marker_histogram(im_hsv, mask_marker_bg)
     #show_marker_histogram_gray(im, mask_marker_bg)
     mask_marker_fg = get_marker_foreground(marker_bg_hsv, mask_marker_bg, marker_area, config_file_data)
-
+    #show_features(im, mask_marker_fg)
     return mask_marker_bg, mask_marker_fg
 
