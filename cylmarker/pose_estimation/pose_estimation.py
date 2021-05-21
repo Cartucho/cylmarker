@@ -89,6 +89,24 @@ def save_pose(im_path, mat):
     np.savetxt(filename, (mat), fmt="%s", delimiter=',')
 
 
+def get_reprojection_error(pts3d, rvec, tvec, inliers, cam_matrix, dist_coeff, pnts2d_detected):
+    """ This function calculates the reprojection error of the inlier points """
+    # Filter the inlier points
+    n_inliers, _ = inliers.shape
+    pts3d_filtered = np.zeros((n_inliers, pts3d.shape[1], pts3d.shape[2]), dtype=np.float)
+    for ind in inliers[:,0]:
+        pts3d_filtered[ind] = pts3d[ind]
+    # Project 3D points into the 2D image
+    pts2d_projected, jacobian = cv.projectPoints(pts3d_filtered, rvec, tvec, cam_matrix, dist_coeff)
+    # Compare projected 2D points with the detected 2D points
+    ## First ensure that they have the same shape
+    pnts2d_detected = np.reshape(pnts2d_detected, pts2d_projected.shape)
+    se = (pts2d_projected - pnts2d_detected) ** 2
+    sse = np.sum(se)
+    reproj_error = np.sqrt(sse / n_inliers) # Using the same formula as in OpenCV's calibration documentation
+    return reproj_error # in [pixels]
+
+
 def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
     ## Load pattern data
     sqnc_max_ind = len(data_pttrn) - 1
@@ -124,6 +142,7 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
             #save_pts_info(im_path, pnts_3d_object, pnts_2d_image)
             """ Step IV - Estimate the marker's pose """
             valid, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_EPNP)
+            #get_reprojection_error(pnts_3d_object, rvec_pred, tvec_pred, inliers, cam_matrix, dist_coeff, pnts_2d_image)
             if valid:
                 # Draw axis
                 show_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff, 6)
