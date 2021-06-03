@@ -124,6 +124,26 @@ def get_reprojection_error(pts3d, rvec, tvec, inliers, cam_matrix, dist_coeff, p
     return reproj_error # in [pixels]
 
 
+def draw_detected_and_projected_features(rvecs, tvecs, cam_matrix, dist_coeff, pttrn, im):
+    for sqnc in pttrn.list_sqnc:
+        if sqnc.sqnc_id != -1:
+            """
+                We will draw the detected and projected contours of each feature in a sequence.
+            """
+            for kpt in sqnc.list_kpts:
+                # First, we draw the detected contour (in green)
+                cntr = kpt.cntr
+                #im = cv.drawContours(im, [cntr], -1, [0, 255, 0], -1)
+                im = cv.drawContours(im, [cntr], -1, [0, 255, 0], 1)
+                # Then, we calculate + draw the projected contour (in red)
+                corners_3d = np.float32(kpt.xyz_corners).reshape(-1,3)
+                imgpts, jac = cv.projectPoints(corners_3d, rvecs, tvecs, cam_matrix, dist_coeff)
+                imgpts = np.asarray(imgpts, dtype=np.int32)
+                #im = cv.fillPoly(im, [imgpts], [0, 0, 255])
+                im = cv.polylines(im, [imgpts], True, [0, 0, 255], thickness=1, lineType=cv.LINE_AA)
+    return im
+
+
 def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
     ## Load pattern data
     sqnc_max_ind = len(data_pttrn) - 1
@@ -161,6 +181,7 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
             """ Step IV - Estimate the marker's pose """
             valid, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_EPNP)
             if valid:
+                #im = draw_detected_and_projected_features(rvec_pred, tvec_pred, cam_matrix, dist_coeff, pttrn, im)
                 show_reproj_error = False #True
                 reproj_error = get_reprojection_error(pnts_3d_object, rvec_pred, tvec_pred, inliers, cam_matrix, dist_coeff, pnts_2d_image, show_reproj_error, im)
                 # Draw axis
