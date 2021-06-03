@@ -89,7 +89,20 @@ def save_pose(im_path, mat):
     np.savetxt(filename, (mat), fmt="%s", delimiter=',')
 
 
-def get_reprojection_error(pts3d, rvec, tvec, inliers, cam_matrix, dist_coeff, pnts2d):
+def show_reproj_error_image(im, pts2d_filtered, pts2d_projected):
+    red = (0, 0, 255)
+    green = (0, 255, 0)
+    for pt2d_d, pt2d_p in zip(pts2d_filtered[:,0], pts2d_projected[:,0]):
+        pt2d_d = (int(round(pt2d_d[0])), int(round(pt2d_d[1])))
+        pt2d_p = (int(round(pt2d_p[0])), int(round(pt2d_p[1])))
+        im = cv.line(im, pt2d_d, pt2d_p, color=red, thickness=1, lineType=cv.LINE_AA)
+        im = cv.circle(im, pt2d_d, radius=1, color=red, thickness=-1)
+        im = cv.circle(im, pt2d_p, radius=1, color=green, thickness=-1)
+    cv.imshow("image", im)
+    cv.waitKey(0)
+
+
+def get_reprojection_error(pts3d, rvec, tvec, inliers, cam_matrix, dist_coeff, pnts2d, show_reproj_error, im):
     """ This function calculates the reprojection error of the inlier points """
     # Filter the inlier points
     n_inliers, _ = inliers.shape
@@ -103,6 +116,8 @@ def get_reprojection_error(pts3d, rvec, tvec, inliers, cam_matrix, dist_coeff, p
     # Compare projected 2D points with the detected 2D points
     ## First ensure that they have the same shape
     pnts2d_detected = np.reshape(pts2d_filtered, pts2d_projected.shape)
+    if show_reproj_error:
+        show_reproj_error_image(im, pnts2d_detected, pts2d_projected)
     se = (pts2d_projected - pnts2d_detected) ** 2
     sse = np.sum(se)
     reproj_error = np.sqrt(sse / n_inliers) # Using the same formula as in OpenCV's calibration documentation
@@ -128,6 +143,7 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
         """ Step I - Undistort the input image """
         im = cv.undistort(im, cam_matrix, dist_coeff)
         dist_coeff = None # we don't need to undistort again
+
         """ Step II - Segment the marker and detect features """
         mask_marker_bg, mask_marker_fg = img_segmentation.marker_segmentation(im, config_file_data)
         if mask_marker_bg is None:
@@ -145,7 +161,8 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
             """ Step IV - Estimate the marker's pose """
             valid, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_EPNP)
             if valid:
-                #reproj_error = get_reprojection_error(pnts_3d_object, rvec_pred, tvec_pred, inliers, cam_matrix, dist_coeff, pnts_2d_image)
+                show_reproj_error = False #True
+                reproj_error = get_reprojection_error(pnts_3d_object, rvec_pred, tvec_pred, inliers, cam_matrix, dist_coeff, pnts_2d_image, show_reproj_error, im)
                 # Draw axis
                 show_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff, 6)
                 # Save solution
