@@ -151,8 +151,8 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
     ## Load camera matrix and distortion coefficients
     cam_matrix = cam_calib_data['camera_matrix']['data']
     cam_matrix = np.reshape(cam_matrix, (3, 3))
-    dist_coeff = cam_calib_data['dist_coeff']['data']
-    dist_coeff = np.array(dist_coeff)
+    dist_coeff_data = cam_calib_data['dist_coeff']['data']
+    dist_coeff_np = np.array(dist_coeff_data)
     # Go through each image and estimate pose
     img_dir_path = config_file_data['img_dir_path']
     img_format = config_file_data['img_format']
@@ -161,6 +161,7 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
         im = cv.imread(im_path, cv.IMREAD_COLOR)
         check_image(im, im_path) # check if image was sucessfully read
         """ Step I - Undistort the input image """
+        dist_coeff = dist_coeff_np
         im = cv.undistort(im, cam_matrix, dist_coeff)
         dist_coeff = None # we don't need to undistort again
 
