@@ -25,6 +25,8 @@ Now, when the `venv` is activated you can run the code using:
 python main.py
 ```
 
+Feel free to adjust the settings in [data/config.yaml](https://github.com/Cartucho/cylmarker/blob/main/data/config.yaml) file.
+
 ## How to create a new marker?
 
 Edit the [data/config.yaml](https://github.com/Cartucho/cylmarker/blob/main/data/config.yaml) file.
