@@ -6,7 +6,6 @@ max_detected_sqnc: 8 # Half the `n_sequences` in the marker
 min_cntr_area_prcntg: 0.03 #% of the marker area (reduce value if smaller keypoints are not being detected)
 max_angle_diff_group: 1.5 # max angular difference (in degrees) between two keypoints in the same sequence
 max_angle_diff_label: 35.0
-green_bg: true # TODO: code to handle this (for a white marker)
 cyl_diameter_mm: 8.35
 # if you print the marker, to wrap around a cylinder, we also need to take into account the paper's thickness
 printing_paper_thickness_mm: 0.08 # standard 100 gsm paper
