@@ -4,7 +4,7 @@ from cylmarker.make_new_pattern_and_marker import create_new_pattern, create_new
 import argparse
 
 
-TASK_CHOICES = {'c': 'camera_calibration', 'p': 'pose_estimation', 'm': 'make_new_pattern_and_marker'}
+TASK_CHOICES = {'p': 'pose_estimation', 'm': 'make_new_pattern_and_marker'}
 
 
 def get_args():
@@ -23,8 +23,6 @@ def main():
         data_pttrn, data_marker = load_data.load_pttrn_and_marker_data(args.path)
         # Estimate pose for each image
         pose_estimation.estimate_poses(data_cam_calib, data_config, data_pttrn, data_marker)
-    elif task == 'camera_calibration':
-        pass
     elif task == 'make_new_pattern_and_marker':
         save_data.check_and_warn_if_files_will_be_replaced(args.path)
         # Make and save new pattern
