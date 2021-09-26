@@ -5,7 +5,7 @@
 This marker can be used to estimate the 6DoF (location + orientation) of cylindrical objects.
 
 
-<img src="https://user-images.githubusercontent.com/15831541/134814396-bf02f8b6-a3f7-4c33-a19d-171880fcc3e6.png" width="25%">
+<img src="https://user-images.githubusercontent.com/15831541/134814396-bf02f8b6-a3f7-4c33-a19d-171880fcc3e6.png" width="40%">
 
 
 ## How to run the code?
