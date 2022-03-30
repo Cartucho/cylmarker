@@ -5,7 +5,7 @@
    width="210mm"
    id="svg266"
    sodipodi:docname="marker_how_to_print.svg"
-   inkscape:version="1.1 (ce6663b3b7, 2021-05-25)"
+   inkscape:version="1.1.2 (76b9e6a115, 2022-02-25)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -34,14 +34,14 @@
      guidetolerance="10"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:window-width="1848"
-     inkscape:window-height="1016"
+     inkscape:window-width="1920"
+     inkscape:window-height="974"
      id="namedview268"
      showgrid="false"
-     inkscape:zoom="1.0475"
-     inkscape:cx="519.80907"
-     inkscape:cy="200.95465"
-     inkscape:window-x="72"
+     inkscape:zoom="0.52375"
+     inkscape:cx="459.18854"
+     inkscape:cy="472.5537"
+     inkscape:window-x="0"
      inkscape:window-y="27"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg266"
@@ -151,6 +151,56 @@
          d="M 0,0 5,-5 -12.5,0 5,5 Z"
          id="path1158-5" />
     </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow2Send-0"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Send"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.3,0,0,-0.3,0.69,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1176-9" />
+    </marker>
+    <inkscape:path-effect
+       effect="bspline"
+       id="path-effect1141-3"
+       is_visible="true"
+       lpeversion="1"
+       weight="33.333333"
+       steps="2"
+       helper_size="0"
+       apply_no_weight="true"
+       apply_with_weight="true"
+       only_selected="false" />
+    <marker
+       style="overflow:visible"
+       id="Arrow2Send-06"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Send"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.3,0,0,-0.3,0.69,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1176-2" />
+    </marker>
+    <inkscape:path-effect
+       effect="bspline"
+       id="path-effect1141-6"
+       is_visible="true"
+       lpeversion="1"
+       weight="33.333333"
+       steps="2"
+       helper_size="0"
+       apply_no_weight="true"
+       apply_with_weight="true"
+       only_selected="false" />
   </defs>
   <rect
      fill="#00ff00"
@@ -161,6 +211,24 @@
      y="441.60699"
      id="rect4"
      style="stroke-width:0.0322966" />
+  <rect
+     fill="#00ff00"
+     height="4.1030574"
+     stroke="none"
+     width="96.890724"
+     x="486.18597"
+     y="441.44553"
+     id="rect4-5"
+     style="stroke-width:0.0060491" />
+  <rect
+     fill="#00ff00"
+     height="7.5575576"
+     stroke="none"
+     width="96.888588"
+     x="486.18707"
+     y="550.84998"
+     id="rect4-6"
+     style="stroke-width:0.00820961" />
   <line
      stroke="#000000"
      stroke-width="0.322966"
@@ -169,6 +237,38 @@
      y1="441.76846"
      y2="441.76846"
      id="line6" />
+  <line
+     stroke="#000000"
+     stroke-width="0.322966"
+     x1="486.18597"
+     x2="583.07568"
+     y1="441.76846"
+     y2="441.76846"
+     id="line6-3" />
+  <line
+     stroke="#000000"
+     stroke-width="0.322966"
+     x1="486.18597"
+     x2="583.07568"
+     y1="558.40753"
+     y2="558.40753"
+     id="line6-67" />
+  <line
+     stroke="#000000"
+     stroke-width="0.322966"
+     x1="486.18707"
+     x2="583.07672"
+     y1="445.54858"
+     y2="445.54858"
+     id="line6-5" />
+  <line
+     stroke="#000000"
+     stroke-width="0.322966"
+     x1="486.18707"
+     x2="583.07672"
+     y1="550.84998"
+     y2="550.84998"
+     id="line6-5-3" />
   <line
      stroke="#000000"
      stroke-width="0.322966"
@@ -1358,6 +1458,18 @@
      inkscape:path-effect="#path-effect1141"
      inkscape:original-d="m 471.8428,394.19841 c -5.62436,12.15176 -11.24971,24.30252 -16.87606,36.45228" />
   <path
+     style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Send-0)"
+     d="m 593.31372,497.66294 c -5.58434,14.6407 -11.16839,29.28067 -16.75218,43.91992"
+     id="path1139-6"
+     inkscape:path-effect="#path-effect1141-3"
+     inkscape:original-d="m 593.31372,497.66294 c -5.58307,14.64118 -11.16713,29.28115 -16.75218,43.91992" />
+  <path
+     style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Send-06)"
+     d="M 593.31372,497.66294 C 584.39003,482.99388 575.46646,468.325 566.54299,453.6563"
+     id="path1139-1"
+     inkscape:path-effect="#path-effect1141-6"
+     inkscape:original-d="m 593.31372,497.66294 c -8.922,-14.67009 -17.84557,-29.33897 -26.77073,-44.00664" />
+  <path
      style="fill:none;stroke:#000000;stroke-width:1.6;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Send)"
      d="m 312.30542,349.32841 c -2.31789,-5.10377 -4.63633,-10.20874 -6.95532,-15.31492"
      id="path1847"
@@ -1446,6 +1558,38 @@
      y1="754.12402"
      y2="754.12402"
      id="line6-6" />
+  <line
+     stroke="#000000"
+     stroke-width="0.322966"
+     x1="480.60217"
+     x2="577.49194"
+     y1="754.12402"
+     y2="754.12402"
+     id="line6-6-9" />
+  <line
+     stroke="#000000"
+     stroke-width="0.322966"
+     x1="480.60217"
+     x2="577.49194"
+     y1="870.76306"
+     y2="870.76306"
+     id="line6-6-1" />
+  <line
+     stroke="#000000"
+     stroke-width="0.322966"
+     x1="480.60095"
+     x2="577.49072"
+     y1="863.20526"
+     y2="863.20526"
+     id="line6-6-1-7" />
+  <line
+     stroke="#000000"
+     stroke-width="0.322966"
+     x1="480.60095"
+     x2="577.4906"
+     y1="757.90387"
+     y2="757.90387"
+     id="line6-6-2" />
   <line
      stroke="#000000"
      stroke-width="0.322966"
@@ -2650,6 +2794,32 @@
        x="18.945312"
        y="964.76562"
        style="font-size:16px">Step 5 - Save Inkscape file (File &gt; Save)</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none"
+     x="609.86975"
+     y="483.12292"
+     id="text2016-3-7-3-8"><tspan
+       sodipodi:role="line"
+       id="tspan2014-6-5-5-7"
+       x="609.86975"
+       y="483.12292"
+       style="font-size:10.6667px">Add these bands to</tspan><tspan
+       sodipodi:role="line"
+       x="609.86975"
+       y="496.4563"
+       id="tspan2245"
+       style="font-size:10.6667px">stick better, since stickers</tspan><tspan
+       sodipodi:role="line"
+       x="609.86975"
+       y="509.78967"
+       id="tspan10577"
+       style="font-size:10.6667px">have the tendency to open</tspan><tspan
+       sodipodi:role="line"
+       x="609.86975"
+       y="523.12305"
+       id="tspan10579"
+       style="font-size:10.6667px">with time </tspan></text>
   <text
      xml:space="preserve"
      style="font-style:normal;font-weight:normal;font-size:16px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none"
