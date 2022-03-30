@@ -180,7 +180,7 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
             pnts_3d_object, pnts_2d_image = pttrn.get_data_for_pnp_solver()
             #save_pts_info(im_path, pnts_3d_object, pnts_2d_image)
             """ Step IV - Estimate the marker's pose """
-            valid, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_EPNP)
+            valid, rvec_pred, tvec_pred, inliers = cv.solvePnPRansac(pnts_3d_object, pnts_2d_image, cam_matrix, dist_coeff, None, None, False, 1000, 3.0, 0.9999, None, cv.SOLVEPNP_SQPNP)
             if valid:
                 #im = draw_detected_and_projected_features(rvec_pred, tvec_pred, cam_matrix, dist_coeff, pttrn, im)
                 show_reproj_error = False #True
