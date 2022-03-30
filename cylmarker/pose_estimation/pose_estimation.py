@@ -84,8 +84,8 @@ def save_pts_info(im_path, pnts_3d_object, pnts_2d_image):
     np.savetxt(filename, (np.squeeze(pnts_2d_image)), fmt="%s", delimiter=',')
 
 
-def save_pose(im_path, mat):
-    filename = '{}.txt'.format(im_path)
+def save_pose(img_format, im_path, mat):
+    filename = im_path.replace(img_format, '.txt')
     np.savetxt(filename, (mat), fmt="%s", delimiter=',')
 
 
@@ -190,4 +190,4 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
                 # Save solution
                 #rmat_pred, _ = cv.Rodrigues(rvec_pred)
                 #transf = np.concatenate((rmat_pred, tvec_pred), axis = 1)
-                #save_pose(im_path, transf)
+                #save_pose(img_format, im_path, transf)
