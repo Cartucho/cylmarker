@@ -188,6 +188,6 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
                 # Draw axis
                 show_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff, 6)
                 # Save solution
-                #rmat_pred, _ = cv.Rodrigues(rvec_pred)
-                #transf = np.concatenate((rmat_pred, tvec_pred), axis = 1)
-                #save_pose(img_format, im_path, transf)
+                rmat_pred, _ = cv.Rodrigues(rvec_pred)
+                transf = np.concatenate((rmat_pred, tvec_pred), axis = 1)
+                save_pose(img_format, im_path, transf)
