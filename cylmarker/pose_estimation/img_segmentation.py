@@ -5,12 +5,9 @@ import matplotlib
 from matplotlib import pyplot as plt # For showing the histograms of the segmented marker
 
 
-def get_hsv_lower_and_upper(h, h_margin, s_min, s_max, v_min, v_max):
-    if h > 180 or h < 0: # TODO: check if it is inclusive or not
-        print("Error: invalid h value")
-        exit()
-    if h_margin > 90:
-        print("Error: please choose a smaller h_margin")
+def get_hsv_lower_and_upper(h_min, h_max, s_min, s_max, v_min, v_max):
+    if h_min < 0 or h_max > 180: # TODO: check if it is inclusive or not
+        print("Error: h should be between 0 and 180")
         exit()
     if s_min < 0 or s_max > 255:
         print("Error: s should be between 0 and 255")
@@ -18,44 +15,23 @@ def get_hsv_lower_and_upper(h, h_margin, s_min, s_max, v_min, v_max):
     if v_min < 0 or v_max > 255:
         print("Error: v should be between 0 and 255")
         exit()
-    h_min = h - h_margin
-    h_max = h + h_margin
     lower = [[h_min, s_min, v_min]]
     upper = [[h_max, s_max, v_max]]
-    # Deal with the discontinuity of the `h` channel
-    #  important for example when detecting the red color.
-    if h_min < 0:
-        lower = [[0, s_min, v_min], [180 + h_min, s_min, v_min]]
-        upper = [[h_max, s_max, v_max], [180, s_max, v_max]]
-    elif h_max > 180:
-        lower = [[0, s_min, v_min], [h_min, s_min, v_min]]
-        upper = [[0 + (h_max - 180), s_max, v_max], [180, s_max, v_max]]
     return np.array(lower, np.uint8), np.array(upper, np.uint8)
-
-
-def get_hsv_mask(im_hsv, lower, upper):
-    mask_colour = None
-    for low, up in zip(lower, upper):
-        mask_colour_tmp = cv.inRange(im_hsv, low, up)
-        if mask_colour is None:
-            mask_colour = mask_colour_tmp
-        else:
-            mask_colour = cv.bitwise_or(mask_colour, mask_colour_tmp)
-    return mask_colour
 
 
 def get_marker_background(im_hsv, config_file_data):
     # Load background HSV data
-    h = config_file_data['marker_bg_hue']
-    h_margin = config_file_data['marker_bg_hue_margin']
+    h_min = config_file_data['marker_bg_h_min']
+    h_max = config_file_data['marker_bg_h_max']
     s_min = config_file_data['marker_bg_s_min']
     s_max = config_file_data['marker_bg_s_max']
     v_min = config_file_data['marker_bg_v_min']
     v_max = config_file_data['marker_bg_v_max']
 
     # Get lower and upper values
-    lower, upper = get_hsv_lower_and_upper(h, h_margin, s_min, s_max, v_min, v_max)
-    mask_bg_colour = get_hsv_mask(im_hsv, lower, upper)
+    lower, upper = get_hsv_lower_and_upper(h_min, h_max, s_min, s_max, v_min, v_max)
+    mask_bg_colour = cv.inRange(im_hsv, lower, upper)
 
     # Erode mask (remove noise, not sure if needed)
     #kernel = np.ones((3, 3), np.uint8)
@@ -85,7 +61,7 @@ def get_marker_foreground(im_hsv, mask_marker_bg, marker_area, config_file_data)
     # We will distinguish the foreground and the background using the V channel
     #  the intuition is that the darker parts of the marker should correspond to the keypoints
     th = cv.adaptiveThreshold(im_hsv[:,:,2], 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
-                 cv.THRESH_BINARY_INV, 47, 2)
+                 cv.THRESH_BINARY_INV, 47, 2) # TODO: 47 is hardcoded
     mask_fg_colour = cv.bitwise_and(th, th, mask=mask_marker_bg)
     #cv.imshow('test', th) # TODO: there seems to be alway a big contour that I could remove
     #cv.waitKey(0)
@@ -95,40 +71,6 @@ def get_marker_foreground(im_hsv, mask_marker_bg, marker_area, config_file_data)
     for cntr in contours:
         if cv.contourArea(cntr) < min_cntr_area:
             mask_fg_colour = cv.drawContours(mask_fg_colour, [cntr], -1, (0, 0, 0), -1)
-
-
-    """
-    # First, we get the darkest region of the HSV
-    h = 90
-    h_margin = 90 # h = 90 and h_margin = 90 will cover all the H's
-    s_min = 0
-    s_max = 255 # cover all the possible S's too
-    v_min = 0
-    v_max = int(0.15*255) # TODO: should be coming from the config file
-
-    ## Get lower and upper values
-    lower, upper = get_hsv_lower_and_upper(h, h_margin, s_min, s_max, v_min, v_max)
-    mask_fg_colour = get_hsv_mask(im_hsv, lower, upper)
-    # Intersect mask with background mask
-    mask_fg_colour = cv.bitwise_and(mask_fg_colour, mask_fg_colour, mask=mask_marker_bg)
-
-    # Then we get the "black-greenish" regions
-    h = config_file_data['marker_bg_hue']
-    h_margin = config_file_data['marker_bg_hue_margin']
-    s_min = 0 #25 #config_file_data['marker_fg_s_min'] # try with 0 too
-    s_max = 255 #config_file_data['marker_fg_s_max']
-    v_min = v_max
-    v_max = v_max + int(0.25*255)
-    if v_max > 255:
-        v_max = 255
-
-    lower, upper = get_hsv_lower_and_upper(h, h_margin, s_min, s_max, v_min, v_max)
-    mask_fg_colour_2 = get_hsv_mask(im_hsv, lower, upper)
-    #cv.imshow('1', mask_fg_colour)
-    #cv.imshow('2', mask_fg_colour_2)
-    # Intersect mask with background mask
-    mask_fg_colour = cv.bitwise_or(mask_fg_colour, mask_fg_colour_2, mask=mask_marker_bg)
-    """
 
     return mask_fg_colour
 

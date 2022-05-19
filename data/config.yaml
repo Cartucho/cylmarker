@@ -19,10 +19,8 @@ printing_paper_thickness_mm: 0.08 # standard 100 gsm paper
 ########################################
 # Note: you can uncomment the function `show_hsv_image(im_hsv)`, inside the file `img_segmentation.py` to adjust these values.
 ## bg -> background (this is used to detect the green part of the marker)
-marker_bg_hue: 60       # 60 = H value of green color
-marker_bg_hue_margin: 4 # This value must be smaller than 90, since in OpenCV the range of H is from 0 to 180
-# H min = marker_bg_hue - marker_bg_hue_margin
-# H max = marker_bg_hue + marker_bg_hue_margin
+marker_bg_h_min: 50 # 60 is usually the Hue value of green color, but these values depend on the light conditions and specific camera
+marker_bg_h_max: 70
 marker_bg_s_min: 15  # If the marker has large white colored regions, due to specular highlights, then you can lower this number.
 marker_bg_s_max: 255
 marker_bg_v_min: 50  # You can lower this when the marker is in low light conditions, make sure it's between 0 and 255.
