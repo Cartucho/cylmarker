@@ -48,7 +48,7 @@ Follow the instructions shown in the [data/marker_how_to_print.svg](https://gith
 
 ## Paper
 
-The paper can be found at [TODO add link when paper is published]()
+The paper can be found at [link](https://spiral.imperial.ac.uk/bitstream/10044/1/93275/5/21681163.2021.pdf).
 
 If you use this marker please consider citing our paper:
 
