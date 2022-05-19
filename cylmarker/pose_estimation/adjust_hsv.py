@@ -11,6 +11,9 @@ h_max = -1
 s_min = -1
 v_min = -1
 im_ind = 0
+mouse_x = 0
+mouse_y = 0
+
 
 def check_image(im, im_path):
     if im is None:
@@ -29,11 +32,16 @@ def trackbar_callback_im(im_ind_new):
     mask_marker_bg, _ = img_segmentation.get_marker_background_hsv(im_hsv, h_min, h_max, s_min, v_min)
     if mask_marker_bg is not None:
         im_copy = im.copy()
+        # Highlight green part in red
         alpha = 0.7
-        # First we show the background part only
         mask_bg_red = np.zeros_like(im_copy)
         mask_bg_red[:,:,2] = mask_marker_bg
         im_copy = cv.addWeighted(im_copy, 1.0, mask_bg_red, alpha, 0)
+        # Draw current HSV value
+        pt_hsv = im_hsv[mouse_y, mouse_x].tolist()
+        text = "HSV = [{}, {}, {}]".format(pt_hsv[0], pt_hsv[1], pt_hsv[2])
+        cv.putText(im_copy, text, (mouse_x, mouse_y), 0, 1, (0, 0, 0), 5) # Black text border
+        cv.putText(im_copy, text, (mouse_x, mouse_y), 0, 1, im[mouse_y, mouse_x].tolist(), 2)
         cv.imshow(title_window, im_copy)
 
 
@@ -61,6 +69,13 @@ def trackbar_callback_v_min(v_min_new):
     trackbar_callback_im(im_ind)
 
 
+def mouse_callback(event, x, y, flags, param):
+    global mouse_x, mouse_y
+    mouse_x = x
+    mouse_y = y
+    trackbar_callback_im(im_ind)
+
+
 def improve_segmentation(config_file_data):
     global h_min, h_max, s_min, v_min
     global img_paths
@@ -76,7 +91,7 @@ def improve_segmentation(config_file_data):
     print('All the images will share the same HSV range.')
     print('Press any [key] when finished.')
 
-    cv.namedWindow(title_window)
+    cv.namedWindow(title_window, cv.WINDOW_NORMAL)
     cv.createTrackbar("Image", title_window , 0, len(img_paths) - 1, trackbar_callback_im)
     cv.createTrackbar("h_min", title_window , h_min, 180, trackbar_callback_h_min)
     cv.createTrackbar("h_max", title_window , h_max, 180, trackbar_callback_h_max)
@@ -84,6 +99,7 @@ def improve_segmentation(config_file_data):
     cv.createTrackbar("v_min", title_window , v_min, 255, trackbar_callback_v_min)
     if len(img_paths) > 0:
         trackbar_callback_im(0)
+        cv.setMouseCallback(title_window, mouse_callback)
         cv.waitKey()
         print('\nDone! Please modify these values in the `config.yaml` file:')
         print('h_min: {}'.format(h_min))
