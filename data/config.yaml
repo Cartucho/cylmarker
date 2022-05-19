@@ -1,17 +1,42 @@
-# Settings for pose estimation
+########################################
+#     Settings for pose estimation     #
+#         `python main.py`             #
+########################################
 img_dir_path: 'data/images'
 img_format: '.png' # keep the dot ('.')!
-min_detected_sqnc: 4 # Minimum 2
+min_detected_sqnc: 4 # Minimum required: 2. You can change this value, 3 is also a good option.
 max_detected_sqnc: 8 # Half the `n_sequences` in the marker
-min_cntr_area_prcntg: 0.03 #% of the marker area (reduce value if smaller keypoints are not being detected)
+min_cntr_area_prcntg: 0.03 #3% of the marker area (reduce value if smaller keypoints are not being detected)
 max_angle_diff_group: 1.5 # max angular difference (in degrees) between two keypoints in the same sequence
 max_angle_diff_label: 35.0
-cyl_diameter_mm: 8.35 # Note: If you change this, please make a new marker, so that the 3D positions are updated!
-# if you print the marker, to wrap around a cylinder, we also need to take into account the paper's thickness
+cyl_diameter_mm: 8.35 # WARNING: If changed you need to make a new marker `python main.py --task m`, so that the 3D positions are updated!
+# Note: if you print the marker, to wrap around a cylinder, we also need to take into account the paper's thickness
+#       total_marker_diameter = cyl_diameter_mm + 2 * printing_paper_thickness_mm
 printing_paper_thickness_mm: 0.08 # standard 100 gsm paper
-# Note: total_marker_diameter = cyl_diameter_mm + 2 * printing_paper_thickness_mm
 
-# Settings for making a new pattern and marker
+########################################
+#  HSV ranges for marker segmentation  #
+########################################
+# Note: you can uncomment the function `show_hsv_image(im_hsv)`, inside the file `img_segmentation.py` to adjust these values.
+## bg -> background (this is used to detect the green part of the marker)
+marker_bg_hue: 60       # 60 = H value of green color
+marker_bg_hue_margin: 4 # This value must be smaller than 90, since in OpenCV the range of H is from 0 to 180
+# H min = marker_bg_hue - marker_bg_hue_margin
+# H max = marker_bg_hue + marker_bg_hue_margin
+marker_bg_s_min: 15  # If the marker has large white colored regions, due to specular highlights, then you can lower this number.
+marker_bg_s_max: 255
+marker_bg_v_min: 50  # You can lower this when the marker is in low light conditions, make sure it's between 0 and 255.
+marker_bg_v_max: 255
+## fg -> foreground (this is used to detect the black features on the marker)
+marker_fg_s_min: 0
+marker_fg_s_max: 255
+marker_fg_v_min: 0
+marker_fg_v_max: 50  # This value will be used to distinguish the green from the black pixels inside the marker!
+
+##################################################
+#  Settings for making a new pattern and marker  #
+#          `python main.py --task m`             #
+##################################################
 new_pattern:
     pattern_size:
         n_sequences: 16 # number of sequences per pattern (= number of columns). Use a EVEN number for hexagonal grid!
@@ -36,22 +61,3 @@ new_marker:
         horizontal: 27.5
     add_border_top_and_bot: true # to be used as a guide for cutting the printed marker
     border_thickness_pixels: 10
-
-########################################
-#  HSV ranges for marker segmentation  #
-########################################
-# Note: you can uncomment the function `show_hsv_image(im_hsv)`, inside the file `img_segmentation.py` to adjust these values.
-## background (this is used to detect the green part of the marker)
-marker_bg_hue: 60       # 60 = H value of green color
-marker_bg_hue_margin: 4 # This value must be smaller than 90, since in OpenCV the range of H is from 0 to 180
-# H min = marker_bg_hue - marker_bg_hue_margin
-# H max = marker_bg_hue + marker_bg_hue_margin
-marker_bg_s_min: 15  # If the marker has large white colored regions, due to specular highlights, then you can lower this number.
-marker_bg_s_max: 255
-marker_bg_v_min: 50  # You can lower this when the marker is in low light conditions, make sure it's between 0 and 255.
-marker_bg_v_max: 255
-## foreground (this is used to detect the black features on the marker)
-marker_fg_s_min: 0
-marker_fg_s_max: 255
-marker_fg_v_min: 0
-marker_fg_v_max: 50  # This value will be used to distinguish the green from the black pixels inside the marker!
