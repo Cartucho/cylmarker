@@ -2,13 +2,12 @@
 #     Settings for pose estimation     #
 #         `python main.py`             #
 ########################################
-img_dir_path: 'data/images'
-img_format: '.png' # keep the dot ('.')!
+img_dir_path: 'data/images' # Change this to the dir containing your images
+img_format: '.png' # keep the dot ('.')! change the png to other format if needed
 min_detected_sqnc: 4 # Minimum required: 2. You can change this value, 3 is also a good option.
-max_detected_sqnc: 8 # Half the `n_sequences` in the marker
 min_cntr_area_prcntg: 0.03 #3% of the marker area (reduce value if smaller keypoints are not being detected)
 max_angle_diff_group: 1.5 # max angular difference (in degrees) between two keypoints in the same sequence
-max_angle_diff_label: 35.0
+max_angle_diff_label: 35.0 # to classify each blob as a 0 or a 1
 cyl_diameter_mm: 8.35 # WARNING: If changed you need to make a new marker `python main.py --task m`, so that the 3D positions are updated!
 # Note: if you print the marker, to wrap around a cylinder, we also need to take into account the paper's thickness
 #       total_marker_diameter = cyl_diameter_mm + 2 * printing_paper_thickness_mm
@@ -16,8 +15,9 @@ printing_paper_thickness_mm: 0.08 # standard 100 gsm paper
 
 ########################################
 #  HSV ranges for marker segmentation  #
+#   `python main.py --task a`          #
 ########################################
-# Note: you can uncomment the function `show_hsv_image(im_hsv)`, inside the file `img_segmentation.py` to adjust these values.
+# Note: use the command `python main.py --task a` to adjust these values
 ## bg -> background (this is used to detect the green part of the marker)
 marker_bg_h_min: 50 # 60 is usually the Hue value of green color, but these values depend on the light conditions and specific camera
 marker_bg_h_max: 70

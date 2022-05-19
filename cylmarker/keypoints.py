@@ -559,7 +559,7 @@ def remove_outlier_sequences(pttrn, sqnc_max_ind, min_detected_sqnc, max_detecte
 def find_keypoints(im, mask_marker_fg, config_file_data, sqnc_max_ind, sequence_length, data_pttrn, data_marker):
     # Load data needed to find sequences of keypoints
     min_detected_sqnc = config_file_data['min_detected_sqnc']
-    max_detected_sqnc = config_file_data['max_detected_sqnc']
+    max_detected_sqnc = int((sqnc_max_ind + 1)/ 2)
     max_ang_diff_group = config_file_data['max_angle_diff_group']
     max_ang_diff_label = config_file_data['max_angle_diff_label']
 
