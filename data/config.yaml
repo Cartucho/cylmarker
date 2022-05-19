@@ -13,23 +13,19 @@ cyl_diameter_mm: 8.35 # WARNING: If changed you need to make a new marker `pytho
 #       total_marker_diameter = cyl_diameter_mm + 2 * printing_paper_thickness_mm
 printing_paper_thickness_mm: 0.08 # standard 100 gsm paper
 
-########################################
-#  HSV ranges for marker segmentation  #
-#   `python main.py --task a`          #
-########################################
+##############################################
+#  HSV ranges for green marker segmentation  #
+#         `python main.py --task a`          #
+##############################################
 # Note: use the command `python main.py --task a` to adjust these values
-## bg -> background (this is used to detect the green part of the marker)
-marker_bg_h_min: 50 # 60 is usually the Hue value of green color, but these values depend on the light conditions and specific camera
-marker_bg_h_max: 70
-marker_bg_s_min: 15  # If the marker has large white colored regions, due to specular highlights, then you can lower this number.
-marker_bg_s_max: 255
-marker_bg_v_min: 50  # You can lower this when the marker is in low light conditions, make sure it's between 0 and 255.
-marker_bg_v_max: 255
-## fg -> foreground (this is used to detect the black features on the marker)
-marker_fg_s_min: 0
-marker_fg_s_max: 255
-marker_fg_v_min: 0
-marker_fg_v_max: 50  # This value will be used to distinguish the green from the black pixels inside the marker!
+# Intuition:
+#   h_min and h_max should be around the green color, usually around 60
+#   s_min -> you can lower this number if the marker has "white" regions due to specular highlights.
+#   v_min -> You can lower this when the marker is in low light conditions.
+h_min: 50
+h_max: 70
+s_min: 15
+v_min: 50
 
 ##################################################
 #  Settings for making a new pattern and marker  #

@@ -30,6 +30,11 @@ python main.py
 ```
 
 Feel free to adjust the settings in [data/config.yaml](https://github.com/Cartucho/cylmarker/blob/main/data/config.yaml) file.
+You can easily adjust the HSV values (to segment the green marker) using:
+
+```
+python main.py --task a
+```
 
 ## How to create a new marker?
 

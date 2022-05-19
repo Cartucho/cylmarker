@@ -20,15 +20,13 @@ def get_hsv_lower_and_upper(h_min, h_max, s_min, s_max, v_min, v_max):
     return np.array(lower, np.uint8), np.array(upper, np.uint8)
 
 
-def get_marker_background(im_hsv, config_file_data):
-    # Load background HSV data
-    h_min = config_file_data['marker_bg_h_min']
-    h_max = config_file_data['marker_bg_h_max']
-    s_min = config_file_data['marker_bg_s_min']
-    s_max = config_file_data['marker_bg_s_max']
-    v_min = config_file_data['marker_bg_v_min']
-    v_max = config_file_data['marker_bg_v_max']
-
+def get_marker_background_hsv(im_hsv, h_min, h_max, s_min, v_min):
+    h_min = h_min
+    h_max = h_max
+    s_min = s_min
+    s_max = 255
+    v_min = v_min
+    v_max = 255
     # Get lower and upper values
     lower, upper = get_hsv_lower_and_upper(h_min, h_max, s_min, s_max, v_min, v_max)
     mask_bg_colour = cv.inRange(im_hsv, lower, upper)
@@ -51,6 +49,15 @@ def get_marker_background(im_hsv, config_file_data):
     mask_marker_bg = cv.erode(mask_marker_bg, kernel, iterations = 3)
 
     return mask_marker_bg, marker_area
+
+def get_marker_background(im_hsv, config_file_data):
+    # Load background HSV data
+    h_min = config_file_data['h_min']
+    h_max = config_file_data['h_max']
+    s_min = config_file_data['s_min']
+    v_min = config_file_data['v_min']
+    return get_marker_background_hsv(im_hsv, h_min, h_max, s_min, v_min)
+
 
 
 def get_marker_foreground(im_hsv, mask_marker_bg, marker_area, config_file_data):

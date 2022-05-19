@@ -1,10 +1,12 @@
 from cylmarker import load_data, save_data
-from cylmarker.pose_estimation import pose_estimation
+from cylmarker.pose_estimation import pose_estimation, adjust_hsv
 from cylmarker.make_new_pattern_and_marker import create_new_pattern, create_new_marker
 import argparse
 
 
-TASK_CHOICES = {'p': 'pose_estimation', 'm': 'make_new_pattern_and_marker'}
+TASK_CHOICES = {'p': 'pose_estimation',
+                'a': 'adjust_hsv',
+                'm': 'make_new_pattern_and_marker'}
 
 
 def get_args():
@@ -23,6 +25,8 @@ def main():
         data_pttrn, data_marker = load_data.load_pttrn_and_marker_data(args.path)
         # Estimate pose for each image
         pose_estimation.estimate_poses(data_cam_calib, data_config, data_pttrn, data_marker)
+    elif task == 'adjust_hsv':
+        adjust_hsv.improve_segmentation(data_config)
     elif task == 'make_new_pattern_and_marker':
         save_data.check_and_warn_if_files_will_be_replaced(args.path)
         # Make and save new pattern
