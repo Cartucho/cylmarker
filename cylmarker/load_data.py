@@ -66,6 +66,8 @@ def load_pttrn_and_marker_data(data_dir):
 
 
 def load_img_paths(img_dir_path, img_format):
+    if ".." in img_dir_path:
+        img_dir_path = os.path.abspath(img_dir_path)
     if is_path_dir(img_dir_path):
         img_paths = os.path.join(img_dir_path, '*{}'.format(img_format))
         img_paths_sorted = natsorted(glob.glob(img_paths))
