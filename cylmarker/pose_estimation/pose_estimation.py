@@ -46,7 +46,7 @@ def show_contours_and_lines_and_centroids(im, pttrn):
                 u, v = kpt.get_centre_uv()
                 im = cv.circle(im, (int(round(u)), int(round(v))), radius=2, color=red, thickness=-1)
     cv.imshow("image", im)
-    cv.waitKey(0)
+    #cv.waitKey(0)
 
 
 def show_axis(im, rvecs, tvecs, cam_matrix, dist_coeff, length):
@@ -149,9 +149,9 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
     sqnc_max_ind = len(data_pttrn) - 1
     sequence_length = len(data_pttrn['sequence_0']['code']) # TODO: hardcoded
     ## Load camera matrix and distortion coefficients
-    cam_matrix = cam_calib_data['camera_matrix']['data']
+    cam_matrix = cam_calib_data['intrinsic']
     cam_matrix = np.reshape(cam_matrix, (3, 3))
-    dist_coeff_data = cam_calib_data['dist_coeff']['data']
+    dist_coeff_data = cam_calib_data['distortion']
     dist_coeff_np = np.array(dist_coeff_data)
     # Go through each image and estimate pose
     img_dir_path = config_file_data['img_dir_path']
@@ -161,10 +161,8 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
         im = cv.imread(im_path, cv.IMREAD_COLOR)
         check_image(im, im_path) # check if image was sucessfully read
         """ Step I - Undistort the input image """
-        dist_coeff = dist_coeff_np
-        im = cv.undistort(im, cam_matrix, dist_coeff)
-        dist_coeff = None # we don't need to undistort again
-
+        im = cv.undistort(im, cam_matrix, dist_coeff_np) # undistort each new image
+        dist_coeff = None # we don't need to undistort again the same image
         """ Step II - Segment the marker and detect features """
         mask_marker_bg, mask_marker_fg = img_segmentation.marker_segmentation(im, config_file_data)
         if mask_marker_bg is None:
@@ -176,7 +174,7 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
         # Estimate pose
         if pttrn is not None:
             # Draw contours and lines (for visualization)
-            #show_contours_and_lines_and_centroids(im, pttrn)
+            show_contours_and_lines_and_centroids(im, pttrn)
             pnts_3d_object, pnts_2d_image = pttrn.get_data_for_pnp_solver()
             #save_pts_info(im_path, pnts_3d_object, pnts_2d_image)
             """ Step IV - Estimate the marker's pose """

@@ -1,13 +1,2 @@
-camera_matrix:
-   rows: 3
-   cols: 3
-   dt: d
-   data: [ 900.0, 0., 359.5,
-           0., 900.0, 287.5,
-           0., 0., 1. ]
-
-dist_coeff:
-   rows: 1
-   cols: 4
-   dt: d
-   data: [ 0., 0., 0., 0. ]
+intrinsic: [[900., 0., 359.5], [0., 900., 287.5], [0., 0., 1.]]
+distortion: [0., 0., 0., 0.] # Image from simulation had no distortion
