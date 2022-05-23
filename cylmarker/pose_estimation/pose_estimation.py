@@ -64,7 +64,7 @@ def show_axis(im, rvecs, tvecs, cam_matrix, dist_coeff, length):
     im = cv.line(im, frame_centre, tuple(imgpts[1].ravel()), (0,0,255), thickness, cv.LINE_AA)
 
     cv.imshow("image", im)
-    cv.waitKey(0)
+    cv.waitKey(500)
 
 
 def get_transf_inv(transf):
