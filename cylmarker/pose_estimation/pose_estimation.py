@@ -49,20 +49,21 @@ def show_contours_and_lines_and_centroids(im, pttrn):
     #cv.waitKey(0)
 
 
-def show_axis(im, rvecs, tvecs, cam_matrix, dist_coeff, length):
-    #print(cam_matrix)
-    #print(np.transpose(tvecs))
-    axis = np.float32([[0, 0, 0], [length,0,0], [0,length,0], [0,0,length]]).reshape(-1,3)
-    #print(axis)
+def show_axis(im, transf, rvecs, tvecs, cam_matrix, dist_coeff, length_m):
+    axis = np.float32([[0, 0, 0], [length_m,0,0], [0,length_m,0], [0,0,length_m]]).reshape(-1,3)
+    # Understand which axis to draw first
+    dist_z = []
+    for target_T_pt in axis[1:]:
+        target_T_pt = np.vstack((target_T_pt.reshape(3,1), [1]))
+        cam_T_pt = np.matmul(transf, target_T_pt)
+        dist_z.append(-cam_T_pt[2,0]) # - so that we sort from further to closer
+    args = np.argsort(dist_z)
     imgpts, jac = cv.projectPoints(axis, rvecs, tvecs, cam_matrix, dist_coeff)
-    #print(imgpts)
-    frame_centre = tuple(imgpts[0].ravel())
-
+    frame_centre = tuple(np.rint(imgpts[0]).astype(int).ravel())
     thickness = 4
-    im = cv.line(im, frame_centre, tuple(imgpts[3].ravel()), (255,0,0), thickness, cv.LINE_AA)
-    im = cv.line(im, frame_centre, tuple(imgpts[2].ravel()), (0,255,0), thickness, cv.LINE_AA)
-    im = cv.line(im, frame_centre, tuple(imgpts[1].ravel()), (0,0,255), thickness, cv.LINE_AA)
-
+    colors = [(0,0,255), (0,255,0), (255,0,0)] # Red, Green, Blue
+    for i in args:
+        cv.line(im, frame_centre, tuple(np.rint(imgpts[i+1]).astype(int).ravel()), colors[i], thickness, cv.LINE_AA)
     cv.imshow("image", im)
     cv.waitKey(500)
 
@@ -182,12 +183,13 @@ def estimate_poses(cam_calib_data, config_file_data, data_pttrn, data_marker):
             if valid:
                 #im = draw_detected_and_projected_features(rvec_pred, tvec_pred, cam_matrix, dist_coeff, pttrn, im)
                 show_reproj_error = False #True
-                reproj_error = get_reprojection_error(pnts_3d_object, rvec_pred, tvec_pred, inliers, cam_matrix, dist_coeff, pnts_2d_image, show_reproj_error, im)
-                # Draw axis
-                show_axis(im, rvec_pred, tvec_pred, cam_matrix, dist_coeff, 6)
-                # Save solution
+                if show_reproj_error:
+                    reproj_error = get_reprojection_error(pnts_3d_object, rvec_pred, tvec_pred, inliers, cam_matrix, dist_coeff, pnts_2d_image, show_reproj_error, im)
                 rmat_pred, _ = cv.Rodrigues(rvec_pred)
                 tvec_pred = tvec_pred * 0.001 # Change [mm] to [m]
                 transf = np.concatenate((rmat_pred, tvec_pred), axis = 1)
                 transf = np.vstack((transf, [0., 0., 0., 1.])) # Making it homogeneous
+                # Draw axis
+                show_axis(im, transf, rvec_pred, tvec_pred, cam_matrix, dist_coeff, 0.005)
+                # Save solution
                 save_pose(img_format, im_path, transf)
